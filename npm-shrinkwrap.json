@@ -1270,7 +1270,7 @@
       "version": "1.6.2"
     },
     "cross-env": {
-      "version": "4.0.0"
+      "version": "5.1.1"
     },
     "cross-spawn": {
       "version": "5.1.0"
