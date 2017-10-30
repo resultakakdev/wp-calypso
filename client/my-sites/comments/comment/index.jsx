@@ -13,6 +13,7 @@ import { get, isUndefined } from 'lodash';
  * Internal dependencies
  */
 import Card from 'components/card';
+import CommentActions from 'my-sites/comments/comment/comment-actions';
 import CommentContent from 'my-sites/comments/comment/comment-content';
 import CommentHeader from 'my-sites/comments/comment/comment-header';
 import QueryComment from 'components/data/query-comment';
@@ -107,6 +108,8 @@ export class Comment extends Component {
 						/>
 
 						<CommentContent { ...{ commentId, isExpanded } } />
+
+						<CommentActions { ...{ commentId } } />
 					</div>
 				) }
 			</Card>
