@@ -79,6 +79,7 @@ export class Comment extends Component {
 			commentStatus,
 			isBulkMode,
 			isLoading,
+			isPersistent,
 			isSelected,
 			refreshCommentData,
 			removeFromPersisted,
@@ -114,7 +115,10 @@ export class Comment extends Component {
 
 						<CommentContent { ...{ commentId, isExpanded } } />
 
-						<CommentActions { ...{ commentId, removeFromPersisted, updatePersisted } } />
+						<CommentActions
+							{ ...{ commentId, isExpanded, isPersistent, removeFromPersisted, updatePersisted } }
+							toggleExpanded={ this.toggleExpanded }
+						/>
 					</div>
 				) }
 			</Card>
