@@ -904,7 +904,7 @@
       "dev": true
     },
     "chai-enzyme": {
-      "version": "0.5.2",
+      "version": "1.0.0-beta.0",
       "dev": true
     },
     "chain-function": {
@@ -942,7 +942,7 @@
       }
     },
     "cheerio": {
-      "version": "0.22.0",
+      "version": "1.0.0-rc.2",
       "dev": true,
       "dependencies": {
         "entities": {
@@ -951,10 +951,6 @@
         },
         "htmlparser2": {
           "version": "3.9.2",
-          "dev": true
-        },
-        "lodash.merge": {
-          "version": "4.6.0",
           "dev": true
         },
         "readable-stream": {
@@ -1069,10 +1065,6 @@
     },
     "code-point-at": {
       "version": "1.1.0"
-    },
-    "collapse-white-space": {
-      "version": "1.0.3",
-      "dev": true
     },
     "color-convert": {
       "version": "1.9.0"
@@ -1505,6 +1497,10 @@
     "diffie-hellman": {
       "version": "5.0.2"
     },
+    "discontinuous-range": {
+      "version": "1.0.0",
+      "dev": true
+    },
     "disparity": {
       "version": "2.0.0",
       "dev": true,
@@ -1597,10 +1593,6 @@
       "version": "0.1.1",
       "optional": true
     },
-    "editions": {
-      "version": "1.3.3",
-      "dev": true
-    },
     "ee-first": {
       "version": "1.1.1"
     },
@@ -1684,15 +1676,31 @@
       "version": "1.0.0"
     },
     "enzyme": {
-      "version": "2.9.1",
+      "version": "3.1.0",
       "dev": true,
       "dependencies": {
         "lodash": {
           "version": "4.17.4",
           "dev": true
-        },
-        "uuid": {
-          "version": "3.1.0",
+        }
+      }
+    },
+    "enzyme-adapter-react-16": {
+      "version": "1.0.2",
+      "dev": true,
+      "dependencies": {
+        "lodash": {
+          "version": "4.17.4",
+          "dev": true
+        }
+      }
+    },
+    "enzyme-adapter-utils": {
+      "version": "1.0.1",
+      "dev": true,
+      "dependencies": {
+        "lodash": {
+          "version": "4.17.4",
           "dev": true
         }
       }
@@ -2217,7 +2225,7 @@
       "dev": true
     },
     "flow-parser": {
-      "version": "0.57.3",
+      "version": "0.58.0",
       "dev": true
     },
     "flux": {
@@ -3109,6 +3117,9 @@
         },
         "lodash.assign": {
           "version": "4.2.0"
+        },
+        "react": {
+          "version": "15.6.2"
         }
       }
     },
@@ -3183,7 +3194,15 @@
       }
     },
     "interpolate-components": {
-      "version": "1.1.0"
+      "version": "1.1.0",
+      "dependencies": {
+        "react": {
+          "version": "15.6.2"
+        },
+        "react-dom": {
+          "version": "15.6.2"
+        }
+      }
     },
     "interpret": {
       "version": "1.0.4"
@@ -3282,20 +3301,6 @@
     "is-path-inside": {
       "version": "1.0.0",
       "dev": true
-    },
-    "is-plain-obj": {
-      "version": "1.1.0",
-      "dev": true
-    },
-    "is-plain-object": {
-      "version": "2.0.4",
-      "dev": true,
-      "dependencies": {
-        "isobject": {
-          "version": "3.0.1",
-          "dev": true
-        }
-      }
     },
     "is-posix-bracket": {
       "version": "0.1.1"
@@ -4219,6 +4224,10 @@
         "acorn": {
           "version": "4.0.13",
           "dev": true
+        },
+        "parse5": {
+          "version": "1.5.1",
+          "dev": true
         }
       }
     },
@@ -4464,14 +4473,6 @@
     "lodash.assign": {
       "version": "3.2.0"
     },
-    "lodash.assignin": {
-      "version": "4.2.0",
-      "dev": true
-    },
-    "lodash.bind": {
-      "version": "4.2.1",
-      "dev": true
-    },
     "lodash.camelcase": {
       "version": "4.3.0"
     },
@@ -4479,23 +4480,15 @@
       "version": "3.0.2",
       "dev": true
     },
-    "lodash.defaults": {
-      "version": "4.2.0",
-      "dev": true
-    },
     "lodash.escape": {
       "version": "3.2.0",
-      "dev": true
-    },
-    "lodash.filter": {
-      "version": "4.6.0",
       "dev": true
     },
     "lodash.flatten": {
       "version": "4.4.0"
     },
-    "lodash.foreach": {
-      "version": "4.5.0",
+    "lodash.flattendeep": {
+      "version": "4.4.0",
       "dev": true
     },
     "lodash.isarguments": {
@@ -4519,26 +4512,10 @@
     "lodash.keysin": {
       "version": "3.0.8"
     },
-    "lodash.map": {
-      "version": "4.6.0",
-      "dev": true
-    },
     "lodash.merge": {
       "version": "3.3.2"
     },
-    "lodash.pick": {
-      "version": "4.4.0",
-      "dev": true
-    },
     "lodash.pickby": {
-      "version": "4.6.0",
-      "dev": true
-    },
-    "lodash.reduce": {
-      "version": "4.6.0",
-      "dev": true
-    },
-    "lodash.reject": {
       "version": "4.6.0",
       "dev": true
     },
@@ -4547,10 +4524,6 @@
     },
     "lodash.snakecase": {
       "version": "4.1.1"
-    },
-    "lodash.some": {
-      "version": "4.6.0",
-      "dev": true
     },
     "lodash.template": {
       "version": "3.6.2",
@@ -4810,6 +4783,24 @@
       "version": "1.2.1",
       "dev": true
     },
+    "nearley": {
+      "version": "2.11.0",
+      "dev": true,
+      "dependencies": {
+        "colors": {
+          "version": "0.5.1",
+          "dev": true
+        },
+        "nomnom": {
+          "version": "1.6.2",
+          "dev": true
+        },
+        "underscore": {
+          "version": "1.4.4",
+          "dev": true
+        }
+      }
+    },
     "negotiator": {
       "version": "0.5.3"
     },
@@ -4835,7 +4826,12 @@
       }
     },
     "node-abi": {
-      "version": "2.1.1"
+      "version": "2.1.2",
+      "dependencies": {
+        "semver": {
+          "version": "5.4.1"
+        }
+      }
     },
     "node-bitmap": {
       "version": "0.0.1",
@@ -4985,7 +4981,9 @@
       "dev": true
     },
     "notifications-panel": {
-      "version": "1.2.7"
+      "version": "2.0.0",
+      "from": "git://github.com/automattic/notifications-panel.git#47efff7ac830485e18c59589ceaf22091e794291",
+      "resolved": "git://github.com/automattic/notifications-panel.git#47efff7ac830485e18c59589ceaf22091e794291"
     },
     "npm-path": {
       "version": "1.1.0",
@@ -5203,7 +5201,7 @@
       "version": "1.0.0"
     },
     "parse5": {
-      "version": "1.5.1",
+      "version": "3.0.2",
       "dev": true
     },
     "parsejson": {
@@ -5528,10 +5526,6 @@
           "version": "1.2.0",
           "dev": true
         },
-        "parse5": {
-          "version": "3.0.2",
-          "dev": true
-        },
         "postcss": {
           "version": "6.0.13",
           "dev": true,
@@ -5678,6 +5672,18 @@
     "querystring-es3": {
       "version": "0.2.1"
     },
+    "raf": {
+      "version": "3.4.0",
+      "dev": true
+    },
+    "railroad-diagrams": {
+      "version": "1.0.0",
+      "dev": true
+    },
+    "randexp": {
+      "version": "0.4.6",
+      "dev": true
+    },
     "randomatic": {
       "version": "1.1.7",
       "dependencies": {
@@ -5712,14 +5718,15 @@
       }
     },
     "react": {
-      "version": "15.6.2"
+      "version": "16.0.0",
+      "dependencies": {
+        "prop-types": {
+          "version": "15.6.0"
+        }
+      }
     },
     "react-addons-create-fragment": {
       "version": "15.6.2"
-    },
-    "react-addons-test-utils": {
-      "version": "15.6.2",
-      "dev": true
     },
     "react-click-outside": {
       "version": "2.3.1"
@@ -5937,11 +5944,12 @@
       }
     },
     "react-dom": {
-      "version": "15.6.2"
-    },
-    "react-element-to-jsx-string": {
-      "version": "3.2.0",
-      "dev": true
+      "version": "16.0.0",
+      "dependencies": {
+        "prop-types": {
+          "version": "15.6.0"
+        }
+      }
     },
     "react-hot-api": {
       "version": "0.4.7"
@@ -5969,7 +5977,7 @@
       }
     },
     "react-test-renderer": {
-      "version": "15.6.2",
+      "version": "16.0.0",
       "dev": true
     },
     "react-transition-group": {
@@ -6236,6 +6244,10 @@
       "version": "1.0.1",
       "dev": true
     },
+    "ret": {
+      "version": "0.1.15",
+      "dev": true
+    },
     "right-align": {
       "version": "0.1.3"
     },
@@ -6290,6 +6302,10 @@
     },
     "rocambole-whitespace": {
       "version": "1.0.0",
+      "dev": true
+    },
+    "rst-selector-parser": {
+      "version": "2.2.3",
       "dev": true
     },
     "rtlcss": {
@@ -6535,10 +6551,6 @@
         }
       }
     },
-    "sortobject": {
-      "version": "1.1.1",
-      "dev": true
-    },
     "source-list-map": {
       "version": "0.1.8"
     },
@@ -6663,10 +6675,6 @@
     },
     "string.prototype.padend": {
       "version": "3.0.0"
-    },
-    "stringify-object": {
-      "version": "2.4.0",
-      "dev": true
     },
     "stringmap": {
       "version": "0.2.2",
@@ -7011,10 +7019,6 @@
     },
     "tracekit": {
       "version": "0.4.3"
-    },
-    "traverse": {
-      "version": "0.6.6",
-      "dev": true
     },
     "tree-kit": {
       "version": "0.5.26",
