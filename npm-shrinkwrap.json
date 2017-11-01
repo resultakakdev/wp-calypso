@@ -3099,7 +3099,7 @@
       }
     },
     "i18n-calypso": {
-      "version": "1.8.2",
+      "version": "1.8.3",
       "dependencies": {
         "async": {
           "version": "1.5.2"
@@ -4835,7 +4835,12 @@
       }
     },
     "node-abi": {
-      "version": "2.1.1"
+      "version": "2.1.2",
+      "dependencies": {
+        "semver": {
+          "version": "5.4.1"
+        }
+      }
     },
     "node-bitmap": {
       "version": "0.0.1",
