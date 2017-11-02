@@ -43,6 +43,7 @@ import {
 	rewindRequestRestore as rewindRequestRestoreAction,
 	rewindRestore as rewindRestoreAction,
 	rewindRequestBackup,
+	rewindBackupDismiss,
 } from 'state/activity-log/actions';
 import {
 	canCurrentUser,
@@ -302,16 +303,16 @@ class ActivityLog extends Component {
 	 * Close Backup confirmation dialog.
 	 */
 	handleBackupDialogClose = () => {
-		const { recordTracksEvent, rewindRequestDismiss, siteId } = this.props;
+		const { recordTracksEvent, dismissBackup, siteId } = this.props;
 		recordTracksEvent( 'calypso_activitylog_backup_cancel' );
-		//rewindRequestDismiss( siteId );
+		dismissBackup( siteId );
 	};
 
 	/**
 	 * Proceed with Backup since user confirmed.
 	 */
 	handleBackupDialogConfirm = () => {
-		const { recordTracksEvent, requestedBackup, rewindRestore, siteId } = this.props;
+		const { recordTracksEvent, requestedBackup /*, rewindRestore, siteId*/ } = this.props;
 		const { rewindId } = requestedBackup;
 
 		debug( 'Restore requested for after activity %o', requestedBackup );
@@ -646,5 +647,6 @@ export default connect(
 		rewindRequestRestore: rewindRequestRestoreAction,
 		rewindRestore: rewindRestoreAction,
 		requestBackup: rewindRequestBackup,
+		dismissBackup: rewindBackupDismiss,
 	}
 )( localize( ActivityLog ) );
