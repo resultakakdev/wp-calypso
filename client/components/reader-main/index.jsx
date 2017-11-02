@@ -12,6 +12,18 @@ import React from 'react';
 import Main from 'components/main';
 import SyncReaderFollows from 'components/data/sync-reader-follows';
 
+// this exists debounced to avoid a race conditions where a ReaderMain
+// during a page transition the new ReaderMain gets mounted before the old one is dismounted.
+// and the sequence of events is: add -> add --> remove
+let numReaderMains = 0;
+const setIsReaderPage = add => {
+	if ( add ) {
+		document.querySelector( 'body' ).classList.add( 'is-reader-page' );
+	} else if ( numReaderMains === 0 ) {
+		document.querySelector( 'body' ).classList.remove( 'is-reader-page' );
+	}
+};
+
 /**
  * A specialization of `Main` that adds a class to the body of the document
  *
@@ -20,11 +32,13 @@ import SyncReaderFollows from 'components/data/sync-reader-follows';
  */
 export default class ReaderMain extends React.Component {
 	componentWillMount() {
-		document.querySelector( 'body' ).classList.add( 'is-reader-page' );
+		numReaderMains++;
+		setIsReaderPage( true );
 	}
 
 	componentWillUnmount() {
-		document.querySelector( 'body' ).classList.remove( 'is-reader-page' );
+		numReaderMains--;
+		setIsReaderPage( false );
 	}
 
 	render() {
