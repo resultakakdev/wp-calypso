@@ -175,7 +175,7 @@ class Dashboard extends Component {
 		const { className, loading, selectedSite } = this.props;
 
 		return (
-			<Main className={ classNames( 'dashboard', className ) }>
+			<Main className={ classNames( 'dashboard', className ) } wideLayout>
 				<ActionHeader
 					breadcrumbs={ this.getBreadcrumb() }
 					isLoading={ loading || ! selectedSite }
