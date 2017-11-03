@@ -210,6 +210,7 @@ class ActivityLog extends Component {
 		} ),
 		recordTracksEvent: PropTypes.func.isRequired,
 		requestedRestoreActivity: PropTypes.shape( {
+			rewindId: PropTypes.string.isRequired,
 			activityTs: PropTypes.number.isRequired,
 		} ),
 		requestedRestoreActivityId: PropTypes.string,
@@ -258,66 +259,76 @@ class ActivityLog extends Component {
 		this.handlePeriodChange( ...args );
 	};
 
-	handleRequestRestore = ( activityId, from ) => {
-		const { recordTracksEvent, rewindRequestRestore, siteId } = this.props;
-
-		recordTracksEvent( 'calypso_activitylog_restore_request', { from } );
-		rewindRequestRestore( siteId, activityId );
+	/**
+	 * The link to download a backup in ellipsis menu in ActivityLogDay > ActivityLogItem,
+	 * or the rewind buttons and links use this method display a certain dialog.
+	 *
+	 * @param {string} activityId Id of the activity up to the one we're downloading.
+	 * @param {string} from       Context for tracking.
+	 * @param {string} type       Type of dialog to show.
+	 */
+	handleRequestDialog = ( activityId, from, type ) => {
+		const { recordTracksEvent, rewindRequestRestore, requestBackup, siteId } = this.props;
+		recordTracksEvent( `calypso_activitylog_${ type }_request`, { from } );
+		switch ( type ) {
+			case 'restore':
+				rewindRequestRestore( siteId, activityId );
+				break;
+			case 'backup':
+				requestBackup( siteId, activityId );
+				break;
+		}
 	};
 
-	handleRestoreDialogClose = () => {
-		const { recordTracksEvent, rewindRequestDismiss, siteId } = this.props;
-		recordTracksEvent( 'calypso_activitylog_restore_cancel' );
-		rewindRequestDismiss( siteId );
+	/**
+	 * Close Restore, Backup, or Transfer confirmation dialog.
+	 * @param {string} type Type of dialog to close.
+	 */
+	handleCloseDialog = type => {
+		const { recordTracksEvent, rewindRequestDismiss, dismissBackup, siteId } = this.props;
+		recordTracksEvent( `calypso_activitylog_${ type }_cancel` );
+		switch ( type ) {
+			case 'restore':
+				rewindRequestDismiss( siteId );
+				break;
+			case 'backup':
+				dismissBackup( siteId );
+				break;
+		}
 	};
 
-	handleRestoreDialogConfirm = () => {
-		const { recordTracksEvent, requestedRestoreActivity, rewindRestore, siteId } = this.props;
-		const { rewindId } = requestedRestoreActivity;
+	/**
+	 * Proceed with Restore, Backup, or Transfer since user confirmed it.
+	 * @param {string} type Type of dialog to close.
+	 */
+	handleConfirmDialog = type => {
+		const {
+			recordTracksEvent,
+			requestedRestoreActivity,
+			requestedBackup,
+			rewindRestore,
+			rewindBackup,
+			siteId,
+		} = this.props;
+		let actionId = null;
 
-		debug( 'Restore requested for after activity %o', requestedRestoreActivity );
-		recordTracksEvent( 'calypso_activitylog_restore_confirm', { rewindId } );
-		rewindRestore( siteId, rewindId );
+		debug( `${ type } requested for after activity %o`, requestedRestoreActivity );
+		switch ( type ) {
+			case 'restore':
+				actionId = requestedRestoreActivity.rewindId;
+				rewindRestore( siteId, actionId );
+				break;
+			case 'backup':
+				actionId = requestedBackup.backupId;
+				rewindBackup( siteId, actionId );
+				break;
+		}
 		scrollTo( {
 			x: 0,
 			y: 0,
 			duration: 250,
 		} );
-	};
-
-	/**
-	 * The link to download a backup in ellipsis menu in ActivityLogDay > ActivityLogItem uses
-	 * this method to point that a backup has been requested and show the dialog.
-	 *
-	 * @param {string} activityId Id of the activity up to the one we're downloading.
-	 * @param {object} from       Context for tracking.
-	 */
-	handleRequestBackup = ( activityId, from ) => {
-		const { recordTracksEvent, requestBackup, siteId } = this.props;
-
-		recordTracksEvent( 'calypso_activitylog_backup_request', { from } );
-		requestBackup( siteId, activityId );
-	};
-
-	/**
-	 * Close Backup confirmation dialog.
-	 */
-	handleBackupDialogClose = () => {
-		const { recordTracksEvent, dismissBackup, siteId } = this.props;
-		recordTracksEvent( 'calypso_activitylog_backup_cancel' );
-		dismissBackup( siteId );
-	};
-
-	/**
-	 * Proceed with Backup since user confirmed.
-	 */
-	handleBackupDialogConfirm = () => {
-		const { recordTracksEvent, requestedBackup /*, rewindRestore, siteId*/ } = this.props;
-		const { rewindId } = requestedBackup;
-
-		debug( 'Restore requested for after activity %o', requestedBackup );
-		recordTracksEvent( 'calypso_activitylog_backup_confirm', { rewindId } );
-		//rewindRestore( siteId, rewindId );
+		recordTracksEvent( `calypso_activitylog_${ type }_confirm`, { actionId } );
 	};
 
 	/**
@@ -361,7 +372,7 @@ class ActivityLog extends Component {
 						<ErrorBanner
 							errorCode={ errorCode }
 							failureReason={ failureReason }
-							requestRestore={ this.handleRequestRestore }
+							requestDialog={ this.handleRequestDialog }
 							siteId={ siteId }
 							siteTitle={ siteTitle }
 							timestamp={ timestamp }
@@ -482,8 +493,8 @@ class ActivityLog extends Component {
 			<ActivityLogConfirmDialog
 				applySiteOffset={ this.applySiteOffset }
 				key="activity-rewind-dialog"
-				onClose={ this.handleRestoreDialogClose }
-				onConfirm={ this.handleRestoreDialogConfirm }
+				onClose={ this.handleCloseDialog }
+				onConfirm={ this.handleConfirmDialog }
 				timestamp={ requestedRestoreActivity.activityTs }
 			/>
 		);
@@ -492,8 +503,8 @@ class ActivityLog extends Component {
 			<ActivityLogConfirmDialog
 				applySiteOffset={ this.applySiteOffset }
 				key="activity-backup-dialog"
-				onClose={ this.handleBackupDialogClose }
-				onConfirm={ this.handleBackupDialogConfirm }
+				onClose={ this.handleCloseDialog }
+				onConfirm={ this.handleConfirmDialog }
 				timestamp={ requestedBackup.activityTs }
 				type={ 'backup' }
 				icon={ 'cloud-download' }
@@ -590,8 +601,8 @@ class ActivityLog extends Component {
 												hideRestore={ ! rewindEnabledByConfig || ! isPressable }
 												isRewindActive={ isRewindActive }
 												logs={ events }
-												requestRestore={ this.handleRequestRestore }
-												requestBackup={ this.handleRequestBackup }
+												requestDialog={ this.handleRequestDialog }
+												closeDialog={ this.handleCloseDialog }
 												siteId={ siteId }
 												tsEndOfSiteDay={ start.valueOf() }
 												isToday={ isToday }

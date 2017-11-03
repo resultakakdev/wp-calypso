@@ -34,17 +34,11 @@ class ActivityLogConfirmDialog extends Component {
 		icon: 'history',
 	};
 
+	handleClickCancel = () => this.props.onClose( this.props.type );
+	handleClickConfirm = () => this.props.onConfirm( this.props.type );
+
 	render() {
-		const {
-			applySiteOffset,
-			moment,
-			timestamp,
-			translate,
-			onClose,
-			onConfirm,
-			type,
-			icon,
-		} = this.props;
+		const { applySiteOffset, moment, timestamp, translate, type, icon } = this.props;
 		const activityTime = applySiteOffset( moment.utc( timestamp ) ).format( 'LLL' );
 		const strings = {};
 
@@ -99,8 +93,8 @@ class ActivityLogConfirmDialog extends Component {
 
 					<div className="activity-log-confirm-dialog__button-wrap">
 						<div className="activity-log-confirm-dialog__primary-actions">
-							<Button onClick={ onClose }>{ translate( 'Cancel' ) }</Button>
-							<Button primary onClick={ onConfirm }>
+							<Button onClick={ this.handleClickCancel }>{ translate( 'Cancel' ) }</Button>
+							<Button primary onClick={ this.handleClickConfirm }>
 								{ strings.confirm }
 							</Button>
 						</div>
