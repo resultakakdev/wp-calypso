@@ -1284,7 +1284,7 @@
       }
     },
     "crypto-browserify": {
-      "version": "3.11.1"
+      "version": "3.12.0"
     },
     "css-color-names": {
       "version": "0.0.3",
@@ -1916,7 +1916,7 @@
       }
     },
     "eslint-config-wpcalypso": {
-      "version": "0.8.0",
+      "version": "1.2.0",
       "dev": true
     },
     "eslint-eslines": {
@@ -5706,6 +5706,9 @@
     },
     "randombytes": {
       "version": "2.0.5"
+    },
+    "randomfill": {
+      "version": "1.0.3"
     },
     "range-parser": {
       "version": "1.0.3"
