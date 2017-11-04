@@ -12,7 +12,6 @@ import { omit } from 'lodash';
  */
 import { combineReducers, isValidStateWithSchema } from 'state/utils';
 import { settingsSchema, systemSchema } from './schema';
-
 import {
 	DESERIALIZE,
 	PUSH_NOTIFICATIONS_API_READY,

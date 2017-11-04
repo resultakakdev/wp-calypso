@@ -20,7 +20,6 @@ import { getShippingLabel, getFormErrors, shouldFulfillOrder, shouldEmailDetails
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import { updateOrder } from 'woocommerce/state/sites/orders/actions';
 import { getAllPackageDefinitions } from 'woocommerce/woocommerce-services/state/packages/selectors';
-
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_INIT,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_IS_FETCHING,

@@ -14,23 +14,34 @@ import mySitesController from 'my-sites/controller';
 import controller from 'my-sites/site-settings/controller';
 import settingsController from 'my-sites/site-settings/settings-controller';
 import { reasonComponents as reasons } from './disconnect-site';
+import { makeLayout, render as clientRender } from 'controller';
 
 export default function() {
-	page( '/settings', mySitesController.siteSelection, controller.redirectToGeneral );
+	page(
+		'/settings',
+		mySitesController.siteSelection,
+		controller.redirectToGeneral,
+		makeLayout,
+		clientRender
+	);
 	page(
 		'/settings/general/:site_id',
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.setScroll,
 		settingsController.siteSettings,
-		controller.general
+		controller.general,
+		makeLayout,
+		clientRender
 	);
 
 	page(
 		'/settings/import/:site_id',
 		mySitesController.siteSelection,
 		mySitesController.navigation,
-		controller.importSite
+		controller.importSite,
+		makeLayout,
+		clientRender
 	);
 
 	if ( config.isEnabled( 'manage/export/guided-transfer' ) ) {
@@ -38,7 +49,9 @@ export default function() {
 			'/settings/export/guided/:host_slug?/:site_id',
 			mySitesController.siteSelection,
 			mySitesController.navigation,
-			controller.guidedTransfer
+			controller.guidedTransfer,
+			makeLayout,
+			clientRender
 		);
 	}
 
@@ -46,7 +59,9 @@ export default function() {
 		'/settings/export/:site_id',
 		mySitesController.siteSelection,
 		mySitesController.navigation,
-		controller.exportSite
+		controller.exportSite,
+		makeLayout,
+		clientRender
 	);
 
 	page(
@@ -54,28 +69,36 @@ export default function() {
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.setScroll,
-		controller.deleteSite
+		controller.deleteSite,
+		makeLayout,
+		clientRender
 	);
 
 	if ( config.isEnabled( 'manage/site-settings/disconnect-flow' ) ) {
 		const reasonSlugs = Object.keys( reasons );
 		page(
 			`/settings/disconnect-site/:step(${ [ ...reasonSlugs, 'confirm' ].join( '|' ) })?`,
-			mySitesController.sites
+			mySitesController.sites,
+			makeLayout,
+			clientRender
 		);
 
 		page(
 			`/settings/disconnect-site/:reason(${ reasonSlugs.join( '|' ) })?/:site_id`,
 			mySitesController.siteSelection,
 			settingsController.setScroll,
-			controller.disconnectSite
+			controller.disconnectSite,
+			makeLayout,
+			clientRender
 		);
 
 		page(
 			'/settings/disconnect-site/confirm/:site_id',
 			mySitesController.siteSelection,
 			settingsController.setScroll,
-			controller.disconnectSiteConfirm
+			controller.disconnectSiteConfirm,
+			makeLayout,
+			clientRender
 		);
 	}
 
@@ -84,14 +107,18 @@ export default function() {
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.setScroll,
-		controller.startOver
+		controller.startOver,
+		makeLayout,
+		clientRender
 	);
 	page(
 		'/settings/theme-setup/:site_id',
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.setScroll,
-		controller.themeSetup
+		controller.themeSetup,
+		makeLayout,
+		clientRender
 	);
 
 	page(
@@ -99,13 +126,17 @@ export default function() {
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.setScroll,
-		controller.manageConnection
+		controller.manageConnection,
+		makeLayout,
+		clientRender
 	);
 
 	page(
 		'/settings/:section',
 		controller.legacyRedirects,
 		mySitesController.siteSelection,
-		mySitesController.sites
+		mySitesController.sites,
+		makeLayout,
+		clientRender
 	);
 }

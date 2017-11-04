@@ -5,7 +5,6 @@
  */
 
 import { GUIDED_TOUR_UPDATE } from 'state/action-types';
-
 import { savePreference } from 'state/preferences/actions';
 import { getPreference } from 'state/preferences/selectors';
 

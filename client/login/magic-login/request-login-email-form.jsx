@@ -23,7 +23,6 @@ import {
 	getMagicLoginRequestedEmailSuccessfully,
 } from 'state/selectors';
 import { CHECK_YOUR_EMAIL_PAGE } from 'state/login/magic-login/constants';
-
 import EmailedLoginLinkSuccessfully from './emailed-login-link-successfully';
 import FormButton from 'components/forms/form-button';
 import FormFieldset from 'components/forms/form-fieldset';

@@ -16,7 +16,6 @@ import SignupActions from 'lib/signup/actions';
 import SignupSiteTitle from 'components/signup-site-title';
 import SiteTitleExample from 'components/site-title-example';
 import { setSiteTitle } from 'state/signup/steps/site-title/actions';
-
 import { translate } from 'i18n-calypso';
 
 class SiteTitleStep extends React.Component {

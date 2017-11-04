@@ -17,7 +17,6 @@ import analytics from 'lib/analytics';
 import route from 'lib/route';
 import userSettings from 'lib/user-settings';
 import { setDocumentHeadTitle as setTitle } from 'state/document-head/actions';
-import { renderWithReduxStore } from 'lib/react-helpers';
 
 const ANALYTICS_PAGE_TITLE = 'Me';
 
@@ -25,18 +24,14 @@ export default {
 	sidebar( context, next ) {
 		const SidebarComponent = require( 'me/sidebar' );
 
-		renderWithReduxStore(
-			React.createElement( SidebarComponent, {
-				context: context,
-			} ),
-			document.getElementById( 'secondary' ),
-			context.store
-		);
+		context.secondary = React.createElement( SidebarComponent, {
+			context: context,
+		} );
 
 		next();
 	},
 
-	profile( context ) {
+	profile( context, next ) {
 		const ProfileComponent = require( 'me/profile' ),
 			basePath = context.path;
 
@@ -44,17 +39,14 @@ export default {
 
 		analytics.pageView.record( basePath, ANALYTICS_PAGE_TITLE + ' > My Profile' );
 
-		renderWithReduxStore(
-			React.createElement( ProfileComponent, {
-				userSettings: userSettings,
-				path: context.path,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
+		context.primary = React.createElement( ProfileComponent, {
+			userSettings: userSettings,
+			path: context.path,
+		} );
+		next();
 	},
 
-	apps( context ) {
+	apps( context, next ) {
 		const AppsComponent = require( 'me/get-apps' ).default;
 		const basePath = context.path;
 
@@ -62,17 +54,14 @@ export default {
 
 		analytics.pageView.record( basePath, ANALYTICS_PAGE_TITLE + ' > Get Apps' );
 
-		renderWithReduxStore(
-			React.createElement( AppsComponent, {
-				userSettings: userSettings,
-				path: context.path,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
+		context.primary = React.createElement( AppsComponent, {
+			userSettings: userSettings,
+			path: context.path,
+		} );
+		next();
 	},
 
-	nextSteps( context ) {
+	nextSteps( context, next ) {
 		const analyticsBasePath = route.sectionify( context.path ),
 			NextSteps = require( './next-steps' ),
 			trophiesData = require( 'lib/trophies-data' ),
@@ -87,15 +76,12 @@ export default {
 		analytics.tracks.recordEvent( 'calypso_me_next_view', { is_welcome: isWelcome } );
 		analytics.pageView.record( analyticsBasePath, ANALYTICS_PAGE_TITLE + ' > Next' );
 
-		renderWithReduxStore(
-			React.createElement( NextSteps, {
-				path: context.path,
-				isWelcome: isWelcome,
-				trophiesData: trophiesData,
-			} ),
-			document.getElementById( 'primary' ),
-			context.store
-		);
+		context.primary = React.createElement( NextSteps, {
+			path: context.path,
+			isWelcome: isWelcome,
+			trophiesData: trophiesData,
+		} );
+		next();
 	},
 
 	// Users that are redirected to `/me/next?welcome` after signup should visit

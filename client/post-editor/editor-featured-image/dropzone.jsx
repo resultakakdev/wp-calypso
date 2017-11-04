@@ -18,7 +18,6 @@ import MediaStore from 'lib/media/store';
 import MediaUtils from 'lib/media/utils';
 import PostActions from 'lib/posts/actions';
 import FeaturedImageDropZoneIcon from './dropzone-icon';
-
 import { receiveMedia, deleteMedia } from 'state/media/actions';
 import { editPost } from 'state/posts/actions';
 import { getSelectedSiteId } from 'state/ui/selectors';

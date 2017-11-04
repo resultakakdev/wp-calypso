@@ -14,6 +14,7 @@ import config from 'config';
 import pluginsController from './controller';
 import { recordTracksEvent } from 'state/analytics/actions';
 import { getSelectedSite } from 'state/ui/selectors';
+import { makeLayout, render as clientRender } from 'controller';
 
 const ifSimpleSiteThenRedirectTo = path => ( context, next ) => {
 	const site = getSelectedSite( context.store.getState() );
@@ -27,44 +28,85 @@ const ifSimpleSiteThenRedirectTo = path => ( context, next ) => {
 
 export default function() {
 	if ( config.isEnabled( 'manage/plugins/setup' ) ) {
-		page( '/plugins/setup', controller.siteSelection, pluginsController.setupPlugins );
+		page(
+			'/plugins/setup',
+			controller.siteSelection,
+			pluginsController.setupPlugins,
+			makeLayout,
+			clientRender
+		);
 
-		page( '/plugins/setup/:site', controller.siteSelection, pluginsController.setupPlugins );
+		page(
+			'/plugins/setup/:site',
+			controller.siteSelection,
+			pluginsController.setupPlugins,
+			makeLayout,
+			clientRender
+		);
 	}
 
 	if ( config.isEnabled( 'manage/plugins' ) ) {
-		page( '/plugins/wpcom-masterbar-redirect/:site', context => {
-			context.store.dispatch( recordTracksEvent( 'calypso_wpcom_masterbar_plugins_view_click' ) );
-			page.redirect( `/plugins/${ context.params.site }` );
-		} );
+		page(
+			'/plugins/wpcom-masterbar-redirect/:site',
+			context => {
+				context.store.dispatch( recordTracksEvent( 'calypso_wpcom_masterbar_plugins_view_click' ) );
+				page.redirect( `/plugins/${ context.params.site }` );
+			},
+			makeLayout,
+			clientRender
+		);
 
-		page( '/plugins/browse/wpcom-masterbar-redirect/:site', context => {
-			context.store.dispatch( recordTracksEvent( 'calypso_wpcom_masterbar_plugins_add_click' ) );
-			page.redirect( `/plugins/browse/${ context.params.site }` );
-		} );
+		page(
+			'/plugins/browse/wpcom-masterbar-redirect/:site',
+			context => {
+				context.store.dispatch( recordTracksEvent( 'calypso_wpcom_masterbar_plugins_add_click' ) );
+				page.redirect( `/plugins/browse/${ context.params.site }` );
+			},
+			makeLayout,
+			clientRender
+		);
 
-		page( '/plugins/manage/wpcom-masterbar-redirect/:site', context => {
-			context.store.dispatch( recordTracksEvent( 'calypso_wpcom_masterbar_plugins_manage_click' ) );
-			page.redirect( `/plugins/manage/${ context.params.site }` );
-		} );
+		page(
+			'/plugins/manage/wpcom-masterbar-redirect/:site',
+			context => {
+				context.store.dispatch(
+					recordTracksEvent( 'calypso_wpcom_masterbar_plugins_manage_click' )
+				);
+				page.redirect( `/plugins/manage/${ context.params.site }` );
+			},
+			makeLayout,
+			clientRender
+		);
 
-		page( '/plugins/browse/:category/:site', context => {
-			const { category, site } = context.params;
-			page.redirect( `/plugins/${ category }/${ site }` );
-		} );
+		page(
+			'/plugins/browse/:category/:site',
+			context => {
+				const { category, site } = context.params;
+				page.redirect( `/plugins/${ category }/${ site }` );
+			},
+			makeLayout,
+			clientRender
+		);
 
-		page( '/plugins/browse/:siteOrCategory?', context => {
-			const { siteOrCategory } = context.params;
-			page.redirect( '/plugins' + ( siteOrCategory ? '/' + siteOrCategory : '' ) );
-		} );
+		page(
+			'/plugins/browse/:siteOrCategory?',
+			context => {
+				const { siteOrCategory } = context.params;
+				page.redirect( '/plugins' + ( siteOrCategory ? '/' + siteOrCategory : '' ) );
+			},
+			makeLayout,
+			clientRender
+		);
 
 		if ( config.isEnabled( 'manage/plugins/upload' ) ) {
-			page( '/plugins/upload', controller.sites );
+			page( '/plugins/upload', controller.sites, makeLayout, clientRender );
 			page(
 				'/plugins/upload/:site_id',
 				controller.siteSelection,
 				controller.navigation,
-				pluginsController.upload
+				pluginsController.upload,
+				makeLayout,
+				clientRender
 			);
 		}
 
@@ -72,7 +114,9 @@ export default function() {
 			'/plugins',
 			controller.siteSelection,
 			controller.navigation,
-			pluginsController.browsePlugins
+			pluginsController.browsePlugins,
+			makeLayout,
+			clientRender
 		);
 
 		page(
@@ -81,7 +125,9 @@ export default function() {
 			controller.navigation,
 			ifSimpleSiteThenRedirectTo( '/plugins' ),
 			pluginsController.plugins.bind( null, 'all' ),
-			controller.sites
+			controller.sites,
+			makeLayout,
+			clientRender
 		);
 
 		[ 'active', 'inactive', 'updates' ].forEach( filter =>
@@ -91,7 +137,9 @@ export default function() {
 				controller.navigation,
 				pluginsController.jetpackCanUpdate.bind( null, filter ),
 				pluginsController.plugins.bind( null, filter ),
-				controller.sites
+				controller.sites,
+				makeLayout,
+				clientRender
 			)
 		);
 
@@ -100,14 +148,18 @@ export default function() {
 			controller.siteSelection,
 			controller.navigation,
 			pluginsController.maybeBrowsePlugins,
-			pluginsController.plugin
+			pluginsController.plugin,
+			makeLayout,
+			clientRender
 		);
 
 		page(
 			'/plugins/:plugin/eligibility/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			pluginsController.eligibility
+			pluginsController.eligibility,
+			makeLayout,
+			clientRender
 		);
 
 		page.exit( '/plugins/*', ( context, next ) => {

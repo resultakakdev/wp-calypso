@@ -5,7 +5,6 @@
  */
 
 import React from 'react';
-
 import { localize } from 'i18n-calypso';
 
 class BackToLibrary extends React.Component {

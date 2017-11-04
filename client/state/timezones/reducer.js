@@ -6,7 +6,6 @@
 
 import { combineReducers, createReducer } from 'state/utils';
 import { TIMEZONES_RECEIVE } from 'state/action-types';
-
 import { rawOffsetsSchema, labelsSchema, continentsSchema } from './schema';
 
 export const rawOffsets = createReducer(

@@ -10,7 +10,6 @@ import { translate } from 'i18n-calypso';
  * Internal dependencies
  */
 import { successNotice, errorNotice } from 'state/notices/actions';
-
 import {
 	getAccountRecoveryPhone,
 	getAccountRecoveryEmail,

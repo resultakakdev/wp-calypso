@@ -13,7 +13,6 @@ import React from 'react';
  */
 import Mentions from './mentions';
 import { getSelectedSite } from 'state/ui/selectors';
-import { renderWithReduxStore } from 'lib/react-helpers';
 
 /**
  * Module variables

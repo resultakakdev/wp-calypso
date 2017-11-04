@@ -13,6 +13,7 @@ import config from 'config';
 import controller from './controller';
 import settingsController from 'my-sites/site-settings/settings-controller';
 import mySitesController from 'my-sites/controller';
+import { makeLayout, render as clientRender } from 'controller';
 
 export default function() {
 	page(
@@ -20,7 +21,9 @@ export default function() {
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.siteSettings,
-		controller.writing
+		controller.writing,
+		makeLayout,
+		clientRender
 	);
 
 	if ( config.isEnabled( 'manage/site-settings/categories' ) ) {
@@ -29,7 +32,9 @@ export default function() {
 			mySitesController.siteSelection,
 			mySitesController.navigation,
 			settingsController.setScroll,
-			controller.taxonomies
+			controller.taxonomies,
+			makeLayout,
+			clientRender
 		);
 	}
 }

@@ -21,7 +21,6 @@ import scrollbleed from './scrollbleed';
 import { getCurrentUser } from 'state/current-user/selectors';
 import getHappychatTimeline from 'state/happychat/selectors/get-happychat-timeline';
 import { isExternal, addSchemeIfMissing, setUrlScheme } from 'lib/url';
-
 import debugFactory from 'debug';
 const debug = debugFactory( 'calypso:happychat:timeline' );
 

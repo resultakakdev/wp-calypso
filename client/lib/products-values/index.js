@@ -28,7 +28,6 @@ import {
 	PLAN_MONTHLY_PERIOD,
 } from 'lib/plans/constants';
 import { isTransfer } from 'lib/cart-values/cart-items';
-
 import schema from './schema.json';
 
 const productDependencies = {

@@ -13,7 +13,6 @@ import { defer } from 'lodash';
 import FeedError from 'reader/feed-error';
 import { setPageTitle, trackPageLoad } from 'reader/controller-helper';
 import AsyncLoad from 'components/async-load';
-import { renderWithReduxStore } from 'lib/react-helpers';
 
 const analyticsPageTitle = 'Reader';
 
@@ -39,7 +38,7 @@ const scrollTopIfNoHash = () =>
 		}
 	} );
 
-export function blogPost( context ) {
+export function blogPost( context, next ) {
 	const blogId = context.params.blog,
 		postId = context.params.post,
 		basePath = '/read/blogs/:blog_id/posts/:post_id',
@@ -51,7 +50,7 @@ export function blogPost( context ) {
 	}
 	trackPageLoad( basePath, fullPageTitle, 'full_post' );
 
-	renderWithReduxStore(
+	context.primary = (
 		<AsyncLoad
 			require="blocks/reader-full-post"
 			blogId={ blogId }
@@ -62,14 +61,13 @@ export function blogPost( context ) {
 				page.back( context.lastRoute || '/' );
 			} }
 			onPostNotFound={ renderPostNotFound }
-		/>,
-		document.getElementById( 'primary' ),
-		context.store
+		/>
 	);
 	scrollTopIfNoHash();
+	next();
 }
 
-export function feedPost( context ) {
+export function feedPost( context, next ) {
 	const feedId = context.params.feed,
 		postId = context.params.post,
 		basePath = '/read/feeds/:feed_id/posts/:feed_item_id',
@@ -81,7 +79,7 @@ export function feedPost( context ) {
 		page.back( context.lastRoute || '/' );
 	}
 
-	renderWithReduxStore(
+	context.primary = (
 		<AsyncLoad
 			require="blocks/reader-full-post"
 			feedId={ feedId }
@@ -89,9 +87,8 @@ export function feedPost( context ) {
 			onClose={ closer }
 			referralStream={ context.lastRoute }
 			onPostNotFound={ renderPostNotFound }
-		/>,
-		document.getElementById( 'primary' ),
-		context.store
+		/>
 	);
 	scrollTopIfNoHash();
+	next();
 }

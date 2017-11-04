@@ -17,10 +17,8 @@ import StepWrapper from 'signup/step-wrapper';
 import SignupActions from 'lib/signup/actions';
 import Card from 'components/card';
 import { BlogImage, PageImage, GridImage } from '../design-type-with-store/type-images';
-
 import { setDesignType } from 'state/signup/steps/design-type/actions';
 import { recordTracksEvent } from 'state/analytics/actions';
-
 import { getThemeForDesignType } from 'signup/utils';
 
 export class DesignTypeStep extends Component {

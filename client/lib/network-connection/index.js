@@ -16,7 +16,6 @@ import i18n from 'i18n-calypso';
  */
 import config from 'config';
 import PollerPool from 'lib/data-poller';
-
 import { connectionLost, connectionRestored } from 'state/application/actions';
 
 var STATUS_CHECK_INTERVAL = 20000,

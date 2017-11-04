@@ -26,7 +26,6 @@ import StreamComponent from 'reader/following/main';
 import { getPrettyFeedUrl, getPrettySiteUrl } from 'reader/route';
 import { recordTrack } from 'reader/stats';
 import { preload } from 'sections-preload';
-import { renderWithReduxStore } from 'lib/react-helpers';
 import AsyncLoad from 'components/async-load';
 
 const analyticsPageTitle = 'Reader';
@@ -40,12 +39,9 @@ function userHasHistory( context ) {
 	return !! context.lastRoute;
 }
 
-function renderFeedError( context ) {
-	renderWithReduxStore(
-		React.createElement( FeedError ),
-		document.getElementById( 'primary' ),
-		context.store
-	);
+function renderFeedError( context, next ) {
+	context.primary = React.createElement( FeedError );
+	next();
 }
 
 const exported = {
@@ -122,11 +118,7 @@ const exported = {
 	},
 
 	sidebar( context, next ) {
-		renderWithReduxStore(
-			<AsyncLoad require="reader/sidebar" path={ context.path } />,
-			document.getElementById( 'secondary' ),
-			context.store
-		);
+		context.secondary = <AsyncLoad require="reader/sidebar" path={ context.path } />;
 
 		next();
 	},
@@ -136,7 +128,7 @@ const exported = {
 		next();
 	},
 
-	following( context ) {
+	following( context, next ) {
 		const basePath = route.sectionify( context.path ),
 			fullAnalyticsPageTitle = analyticsPageTitle + ' > Following',
 			followingStore = feedStreamFactory( 'following' ),
@@ -153,25 +145,22 @@ const exported = {
 		setPageTitle( context, i18n.translate( 'Following' ) );
 
 		// warn: don't async load this only. we need it to keep feed-post-store in the reader bundle
-		renderWithReduxStore(
-			React.createElement( StreamComponent, {
-				key: 'following',
-				listName: i18n.translate( 'Followed Sites' ),
-				postsStore: followingStore,
-				recommendationsStore,
-				showPrimaryFollowButtonOnCards: false,
-				trackScrollPage: trackScrollPage.bind(
-					null,
-					basePath,
-					fullAnalyticsPageTitle,
-					analyticsPageTitle,
-					mcKey
-				),
-				onUpdatesShown: trackUpdatesLoaded.bind( null, mcKey ),
-			} ),
-			'primary',
-			context.store
-		);
+		context.primary = React.createElement( StreamComponent, {
+			key: 'following',
+			listName: i18n.translate( 'Followed Sites' ),
+			postsStore: followingStore,
+			recommendationsStore,
+			showPrimaryFollowButtonOnCards: false,
+			trackScrollPage: trackScrollPage.bind(
+				null,
+				basePath,
+				fullAnalyticsPageTitle,
+				analyticsPageTitle,
+				mcKey
+			),
+			onUpdatesShown: trackUpdatesLoaded.bind( null, mcKey ),
+		} );
+		next();
 	},
 
 	feedDiscovery( context, next ) {
@@ -188,7 +177,7 @@ const exported = {
 		}
 	},
 
-	feedListing( context ) {
+	feedListing( context, next ) {
 		const basePath = '/read/feeds/:feed_id',
 			fullAnalyticsPageTitle = analyticsPageTitle + ' > Feed > ' + context.params.feed_id,
 			feedStore = feedStreamFactory( 'feed:' + context.params.feed_id ),
@@ -201,7 +190,7 @@ const exported = {
 			feed_id: context.params.feed_id,
 		} );
 
-		renderWithReduxStore(
+		context.primary = (
 			<AsyncLoad
 				require="reader/feed-stream"
 				key={ 'feed-' + context.params.feed_id }
@@ -218,13 +207,12 @@ const exported = {
 				showPrimaryFollowButtonOnCards={ false }
 				suppressSiteNameLink={ true }
 				showBack={ userHasHistory( context ) }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
+			/>
 		);
+		next();
 	},
 
-	blogListing( context ) {
+	blogListing( context, next ) {
 		const basePath = '/read/blogs/:blog_id',
 			fullAnalyticsPageTitle = analyticsPageTitle + ' > Site > ' + context.params.blog_id,
 			feedStore = feedStreamFactory( 'site:' + context.params.blog_id ),
@@ -237,7 +225,7 @@ const exported = {
 			blog_id: context.params.blog_id,
 		} );
 
-		renderWithReduxStore(
+		context.primary = (
 			<AsyncLoad
 				require="reader/site-stream"
 				key={ 'site-' + context.params.blog_id }
@@ -254,13 +242,12 @@ const exported = {
 				showPrimaryFollowButtonOnCards={ false }
 				suppressSiteNameLink={ true }
 				showBack={ userHasHistory( context ) }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
+			/>
 		);
+		next();
 	},
 
-	readA8C( context ) {
+	readA8C( context, next ) {
 		const basePath = route.sectionify( context.path ),
 			fullAnalyticsPageTitle = analyticsPageTitle + ' > A8C',
 			feedStore = feedStreamFactory( 'a8c' ),
@@ -272,7 +259,7 @@ const exported = {
 
 		setPageTitle( context, 'Automattic' );
 
-		renderWithReduxStore(
+		context.primary = (
 			<AsyncLoad
 				require="reader/team/main"
 				key="read-a8c"
@@ -288,10 +275,9 @@ const exported = {
 				) }
 				showPrimaryFollowButtonOnCards={ false }
 				onUpdatesShown={ trackUpdatesLoaded.bind( null, mcKey ) }
-			/>,
-			document.getElementById( 'primary' ),
-			context.store
+			/>
 		);
+		next();
 	},
 };
 

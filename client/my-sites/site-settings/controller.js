@@ -17,7 +17,6 @@ import DeleteSite from './delete-site';
 import ConfirmDisconnection from './disconnect-site/confirm';
 import DisconnectSite from './disconnect-site';
 import purchasesPaths from 'me/purchases/paths';
-import { renderWithReduxStore } from 'lib/react-helpers';
 import SiteSettingsMain from 'my-sites/site-settings/main';
 import StartOver from './start-over';
 import ThemeSetup from './theme-setup';
@@ -50,7 +49,7 @@ function canDeleteSite( state, siteId ) {
 }
 
 function renderPage( context, component ) {
-	renderWithReduxStore( component, document.getElementById( 'primary' ), context.store );
+	context.primary = component;
 }
 
 const controller = {

@@ -12,6 +12,7 @@ import page from 'page';
 import controller from 'my-sites/controller';
 import pagesController from './controller';
 import config from 'config';
+import { makeLayout, render as clientRender } from 'controller';
 
 export default function() {
 	if ( config.isEnabled( 'manage/pages' ) ) {
@@ -19,7 +20,9 @@ export default function() {
 			'/pages/:status?/:domain?',
 			controller.siteSelection,
 			controller.navigation,
-			pagesController.pages
+			pagesController.pages,
+			makeLayout,
+			clientRender
 		);
 	}
 }

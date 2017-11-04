@@ -12,7 +12,6 @@ import { get, identity, isEmpty, map } from 'lodash';
 import { dispatchRequest } from 'state/data-layer/wpcom-http/utils';
 import { http } from 'state/data-layer/wpcom-http/actions';
 import { AUTOMATED_TRANSFER_ELIGIBILITY_REQUEST } from 'state/action-types';
-
 import { updateEligibility } from 'state/automated-transfer/actions';
 import { eligibilityHolds } from 'state/automated-transfer/constants';
 import { recordTracksEvent, withAnalytics } from 'state/analytics/actions';

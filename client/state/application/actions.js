@@ -5,7 +5,6 @@
  */
 
 import { CONNECTION_LOST, CONNECTION_RESTORED } from 'state/action-types';
-
 import { warningNotice, successNotice, removeNotice } from 'state/notices/actions';
 
 export function connectionLost( noticeText ) {

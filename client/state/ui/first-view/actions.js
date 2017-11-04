@@ -10,7 +10,6 @@ import { filter } from 'lodash';
  * Internal dependencies
  */
 import { FIRST_VIEW_HIDE } from 'state/action-types';
-
 import { bumpStat, recordTracksEvent } from 'state/analytics/actions';
 
 import { savePreference } from 'state/preferences/actions';

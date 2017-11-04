@@ -15,7 +15,6 @@ import { capitalPDangit } from 'lib/formatting';
  */
 import TransactionsHeader from './transactions-header';
 import tableRows from './table-rows';
-
 import SearchCard from 'components/search-card';
 
 class TransactionsTable extends React.Component {

@@ -12,6 +12,7 @@ import page from 'page';
 import controller from 'my-sites/controller';
 import statsController from './controller';
 import config from 'config';
+import { makeLayout, render as clientRender } from 'controller';
 
 export default function() {
 	if ( config.isEnabled( 'jetpack/activity-log' ) ) {
@@ -19,30 +20,52 @@ export default function() {
 			'/stats/activity/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.activityLog
+			statsController.activityLog,
+			makeLayout,
+			clientRender
 		);
 	}
 	if ( config.isEnabled( 'manage/stats' ) ) {
 		// Stat Overview Page
-		page( '/stats', controller.siteSelection, controller.navigation, statsController.overview );
-		page( '/stats/day', controller.siteSelection, controller.navigation, statsController.overview );
+		page(
+			'/stats',
+			controller.siteSelection,
+			controller.navigation,
+			statsController.overview,
+			makeLayout,
+			clientRender
+		);
+		page(
+			'/stats/day',
+			controller.siteSelection,
+			controller.navigation,
+			statsController.overview,
+			makeLayout,
+			clientRender
+		);
 		page(
 			'/stats/week',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.overview
+			statsController.overview,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/month',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.overview
+			statsController.overview,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/year',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.overview
+			statsController.overview,
+			makeLayout,
+			clientRender
 		);
 
 		// Stat Insights Page
@@ -50,7 +73,9 @@ export default function() {
 			'/stats/insights/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.insights
+			statsController.insights,
+			makeLayout,
+			clientRender
 		);
 
 		// Stat Site Pages
@@ -58,25 +83,33 @@ export default function() {
 			'/stats/day/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.site
+			statsController.site,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/week/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.site
+			statsController.site,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/month/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.site
+			statsController.site,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/year/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.site
+			statsController.site,
+			makeLayout,
+			clientRender
 		);
 
 		// Stat Summary Pages
@@ -84,31 +117,41 @@ export default function() {
 			'/stats/:module/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.summary
+			statsController.summary,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/day/:module/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.summary
+			statsController.summary,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/week/:module/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.summary
+			statsController.summary,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/month/:module/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.summary
+			statsController.summary,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/year/:module/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.summary
+			statsController.summary,
+			makeLayout,
+			clientRender
 		);
 
 		// Stat Single Post Page
@@ -116,13 +159,17 @@ export default function() {
 			'/stats/post/:post_id/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.post
+			statsController.post,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/page/:post_id/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.post
+			statsController.post,
+			makeLayout,
+			clientRender
 		);
 
 		// Stat Follows Page
@@ -130,18 +177,22 @@ export default function() {
 			'/stats/follows/comment/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.follows
+			statsController.follows,
+			makeLayout,
+			clientRender
 		);
 		page(
 			'/stats/follows/comment/:page_num/:site_id',
 			controller.siteSelection,
 			controller.navigation,
-			statsController.follows
+			statsController.follows,
+			makeLayout,
+			clientRender
 		);
 
 		// Reset first view
 		if ( config.isEnabled( 'ui/first-view/reset-route' ) ) {
-			page( '/stats/reset-first-view', statsController.resetFirstView );
+			page( '/stats/reset-first-view', statsController.resetFirstView, makeLayout, clientRender );
 		}
 
 		// Anything else should require site-selection
@@ -150,7 +201,9 @@ export default function() {
 			controller.siteSelection,
 			controller.navigation,
 			statsController.redirectToDefaultSitePage,
-			controller.sites
+			controller.sites,
+			makeLayout,
+			clientRender
 		);
 	}
 }

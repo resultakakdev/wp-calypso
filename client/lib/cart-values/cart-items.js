@@ -51,7 +51,6 @@ import {
 import sortProducts from 'lib/products-values/sort';
 import { PLAN_PERSONAL } from 'lib/plans/constants';
 import { domainProductSlugs } from 'lib/domains/constants';
-
 import {
 	PLAN_FREE,
 	PLAN_JETPACK_PREMIUM,

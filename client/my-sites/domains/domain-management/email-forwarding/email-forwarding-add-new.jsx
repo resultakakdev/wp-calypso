@@ -7,7 +7,6 @@
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import React from 'react';
-
 import createReactClass from 'create-react-class';
 
 /**

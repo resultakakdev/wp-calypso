@@ -12,17 +12,26 @@ import page from 'page';
 import controller from 'my-sites/controller';
 import config from 'config';
 import peopleController from './controller';
+import { makeLayout, render as clientRender } from 'controller';
 
 export default function() {
 	if ( config.isEnabled( 'manage/people' ) ) {
 		[ 'team', 'followers', 'email-followers', 'viewers' ].forEach( function( filter ) {
-			page( '/people/' + filter, controller.siteSelection, controller.sites );
+			page(
+				'/people/' + filter,
+				controller.siteSelection,
+				controller.sites,
+				makeLayout,
+				clientRender
+			);
 			page(
 				'/people/' + filter + '/:site_id',
 				peopleController.enforceSiteEnding,
 				controller.siteSelection,
 				controller.navigation,
-				peopleController.people.bind( null, filter )
+				peopleController.people.bind( null, filter ),
+				makeLayout,
+				clientRender
 			);
 		} );
 
@@ -31,7 +40,9 @@ export default function() {
 			peopleController.enforceSiteEnding,
 			controller.siteSelection,
 			controller.navigation,
-			peopleController.invitePeople
+			peopleController.invitePeople,
+			makeLayout,
+			clientRender
 		);
 
 		page(
@@ -39,10 +50,18 @@ export default function() {
 			peopleController.enforceSiteEnding,
 			controller.siteSelection,
 			controller.navigation,
-			peopleController.person
+			peopleController.person,
+			makeLayout,
+			clientRender
 		);
 
 		// Anything else is unexpected and should be redirected to the default people management URL: /people/team
-		page( '/people/(.*)?', controller.siteSelection, peopleController.redirectToTeam );
+		page(
+			'/people/(.*)?',
+			controller.siteSelection,
+			peopleController.redirectToTeam,
+			makeLayout,
+			clientRender
+		);
 	}
 }

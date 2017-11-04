@@ -5,7 +5,6 @@
  */
 
 import { combineReducers, createReducer, keyedReducer } from 'state/utils';
-
 import {
 	AUTOMATED_TRANSFER_INITIATE_WITH_PLUGIN_ZIP,
 	AUTOMATED_TRANSFER_STATUS_SET,

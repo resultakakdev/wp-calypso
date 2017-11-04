@@ -18,7 +18,6 @@ import FormButton from 'components/button';
 import FormLabel from 'components/forms/form-label';
 import FormInput from 'components/forms/form-text-input';
 import { fetchResetOptionsByLogin } from 'state/account-recovery/reset/actions';
-
 import {
 	isRequestingAccountRecoveryResetOptions,
 	getAccountRecoveryResetOptionsError,

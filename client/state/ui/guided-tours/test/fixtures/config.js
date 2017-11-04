@@ -11,7 +11,6 @@ import { stubTrue } from 'lodash';
  * Internal dependencies
  */
 import { combineTours, makeTour, Tour, Step } from 'layout/guided-tours/config-elements';
-
 import { isNewUser, inSection } from 'state/ui/guided-tours/contexts';
 
 export const MainTour = makeTour(

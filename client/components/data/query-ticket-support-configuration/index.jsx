@@ -11,7 +11,6 @@ import { connect } from 'react-redux';
  * Internal dependencies
  */
 import { ticketSupportConfigurationRequest } from 'state/help/ticket/actions';
-
 import { isRequestingTicketSupportConfiguration } from 'state/help/ticket/selectors';
 
 class QueryTicketSupportConfiguration extends Component {

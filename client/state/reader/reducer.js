@@ -3,7 +3,6 @@
  * Internal dependencies
  */
 import { combineReducers } from 'state/utils';
-
 import conversations from './conversations/reducer';
 import feeds from './feeds/reducer';
 import feedSearches from './feed-searches/reducer';

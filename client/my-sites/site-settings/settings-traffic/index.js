@@ -12,6 +12,7 @@ import page from 'page';
 import controller from './controller';
 import mySitesController from 'my-sites/controller';
 import settingsController from 'my-sites/site-settings/settings-controller';
+import { makeLayout, render as clientRender } from 'controller';
 
 const redirectToTrafficSection = context => {
 	page.redirect( '/settings/traffic/' + ( context.params.site_id || '' ) );
@@ -23,10 +24,12 @@ export default function() {
 		mySitesController.siteSelection,
 		mySitesController.navigation,
 		settingsController.siteSettings,
-		controller.traffic
+		controller.traffic,
+		makeLayout,
+		clientRender
 	);
 
 	// redirect legacy urls
-	page( '/settings/analytics/:site_id?', redirectToTrafficSection );
-	page( '/settings/seo/:site_id?', redirectToTrafficSection );
+	page( '/settings/analytics/:site_id?', redirectToTrafficSection, makeLayout, clientRender );
+	page( '/settings/seo/:site_id?', redirectToTrafficSection, makeLayout, clientRender );
 }
