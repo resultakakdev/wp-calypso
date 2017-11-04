@@ -294,6 +294,10 @@ export class EditorGroundControl extends PureComponent {
 		);
 	}
 
+	onBackButtonClick = () => {
+		page.back( this.props.allPostsUrl );
+	};
+
 	render() {
 		const { translate } = this.props;
 
@@ -303,7 +307,7 @@ export class EditorGroundControl extends PureComponent {
 					borderless
 					className="editor-ground-control__back"
 					href={ '' }
-					onClick={ page.back.bind( page, this.props.allPostsUrl ) }
+					onClick={ this.onBackButtonClick }
 					aria-label={ translate( 'Go back' ) }
 				>
 					<Gridicon icon="arrow-left" />
