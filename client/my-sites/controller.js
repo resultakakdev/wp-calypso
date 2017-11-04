@@ -153,7 +153,6 @@ function renderNoVisibleSites( context, next ) {
 
 function renderSelectedSiteIsDomainOnly( reactContext, selectedSite ) {
 	const DomainOnly = require( 'my-sites/domains/domain-management/list/domain-only' );
-	// const { store: reduxStore } = reactContext;
 
 	reactContext.primary = <DomainOnly siteId={ selectedSite.ID } hasNotice={ false } />;
 
