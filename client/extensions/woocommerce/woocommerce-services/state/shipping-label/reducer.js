@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * External dependencies
  */
@@ -42,6 +41,8 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REPRINT_DIALOG_READY,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_REPRINT_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_REPRINT,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_DETAILS_DIALOG,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_PACKAGE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_ITEM_MOVE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_MOVE_ITEM,
@@ -402,10 +403,6 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_ITEMS ] = ( state, { targetPac
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_ADD_PACKAGE ] = ( state ) => {
 	const newPackages = { ...state.form.packages.selected };
 	const packageKeys = Object.keys( newPackages );
-	const boxesKeys = Object.keys( state.form.packages.all );
-	if ( ! boxesKeys.length ) {
-		return state;
-	}
 
 	const addedPackageId = generateUniqueBoxId( 'client_custom_', packageKeys );
 	const openedPackageId = addedPackageId;
@@ -470,11 +467,9 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REMOVE_PACKAGE ] = ( state, { pack
 	};
 };
 
-reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE ] = ( state, { packageId, boxTypeId } ) => {
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_TYPE ] = ( state, { box, packageId, boxTypeId } ) => {
 	const newPackages = { ...state.form.packages.selected };
 	const oldPackage = newPackages[ packageId ];
-
-	const box = state.form.packages.all[ boxTypeId ];
 	const weight = round(
 		oldPackage.isUserSpecifiedWeight
 			? oldPackage.weight
@@ -723,7 +718,6 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_REFUND_RESPONSE ] = ( state, { res
 		refundDialog: null,
 		labels: [ ...state.labels ],
 	};
-	newState.refundDialog = null;
 	newState.labels[ labelIndex ] = labelData;
 
 	return newState;
@@ -762,6 +756,20 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CONFIRM_REPRINT ] = ( state ) => {
 		reprintDialog: { ...state.reprintDialog,
 			isFetching: true,
 		},
+	};
+};
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_OPEN_DETAILS_DIALOG ] = ( state, { labelId } ) => {
+	return { ...state,
+		detailsDialog: {
+			labelId,
+		},
+	};
+};
+
+reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_CLOSE_DETAILS_DIALOG ] = ( state ) => {
+	return { ...state,
+		detailsDialog: null,
 	};
 };
 

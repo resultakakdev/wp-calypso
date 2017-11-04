@@ -43,6 +43,7 @@ import {
 	isDomainProduct,
 	isDomainRedemption,
 	isDomainRegistration,
+	isDomainTransfer,
 	isDotComPlan,
 	isGoogleApps,
 	isGuidedTransfer,
@@ -76,10 +77,13 @@ import {
 	PLAN_JETPACK_BUSINESS,
 	PLAN_JETPACK_BUSINESS_MONTHLY,
 } from 'lib/plans/constants';
-import { getSiteOptions } from 'state/selectors';
+import { hasSitePendingAutomatedTransfer, isSiteAutomatedTransfer } from 'state/selectors';
 
 function getPurchases( props ) {
-	return ( props.receipt.data && props.receipt.data.purchases ) || [];
+	return [
+		...get( props, 'receipt.data.purchases', [] ),
+		...get( props, 'gsuiteReceipt.data.purchases', [] ),
+	];
 }
 
 function getFailedPurchases( props ) {
@@ -92,20 +96,28 @@ function findPurchaseAndDomain( purchases, predicate ) {
 	return [ purchase, purchase.meta ];
 }
 
-const CheckoutThankYou = React.createClass( {
-	propTypes: {
+class CheckoutThankYou extends React.Component {
+	static propTypes = {
 		domainOnlySiteFlow: PropTypes.bool.isRequired,
 		failedPurchases: PropTypes.array,
 		productsList: PropTypes.object.isRequired,
 		receiptId: PropTypes.number,
+		gsuiteReceiptId: PropTypes.number,
 		selectedFeature: PropTypes.string,
 		selectedSite: PropTypes.oneOfType( [ PropTypes.bool, PropTypes.object ] ),
-	},
+	};
 
 	componentDidMount() {
 		this.redirectIfThemePurchased();
 
-		const { receipt, receiptId, selectedSite, sitePlans } = this.props;
+		const {
+			gsuiteReceipt,
+			gsuiteReceiptId,
+			receipt,
+			receiptId,
+			selectedSite,
+			sitePlans,
+		} = this.props;
 
 		if ( selectedSite && receipt.hasLoadedFromServer && this.hasPlanOrDomainProduct() ) {
 			this.props.refreshSitePlans( selectedSite );
@@ -117,6 +129,15 @@ const CheckoutThankYou = React.createClass( {
 			this.props.fetchReceipt( receiptId );
 		}
 
+		if (
+			gsuiteReceiptId &&
+			gsuiteReceipt &&
+			! gsuiteReceipt.hasLoadedFromServer &&
+			! gsuiteReceipt.isRequesting
+		) {
+			this.props.fetchReceipt( gsuiteReceiptId );
+		}
+
 		analytics.tracks.recordEvent( 'calypso_checkout_thank_you_view' );
 
 		window.scrollTo( 0, 0 );
@@ -124,7 +145,7 @@ const CheckoutThankYou = React.createClass( {
 		if ( this.isNewUser() ) {
 			this.props.loadTrackingTool( 'HotJar' );
 		}
-	},
+	}
 
 	componentWillReceiveProps( nextProps ) {
 		this.redirectIfThemePurchased();
@@ -137,15 +158,15 @@ const CheckoutThankYou = React.createClass( {
 		) {
 			this.props.refreshSitePlans( this.props.selectedSite );
 		}
-	},
+	}
 
-	hasPlanOrDomainProduct( props = this.props ) {
+	hasPlanOrDomainProduct = ( props = this.props ) => {
 		return getPurchases( props ).some(
 			purchase => isPlan( purchase ) || isDomainProduct( purchase )
 		);
-	},
+	};
 
-	renderConfirmationNotice: function() {
+	renderConfirmationNotice = () => {
 		if ( ! this.props.user || ! this.props.user.email || this.props.user.email_verified ) {
 			return null;
 		}
@@ -168,24 +189,25 @@ const CheckoutThankYou = React.createClass( {
 				) }
 			</Notice>
 		);
-	},
+	};
 
-	isDataLoaded() {
+	isDataLoaded = () => {
 		if ( this.isGenericReceipt() ) {
 			return true;
 		}
 
 		return (
 			( ! this.props.selectedSite || this.props.sitePlans.hasLoadedFromServer ) &&
-			this.props.receipt.hasLoadedFromServer
+			this.props.receipt.hasLoadedFromServer &&
+			( ! this.props.gsuiteReceipt || this.props.gsuiteReceipt.hasLoadedFromServer )
 		);
-	},
+	};
 
-	isGenericReceipt() {
+	isGenericReceipt = () => {
 		return ! this.props.receiptId;
-	},
+	};
 
-	redirectIfThemePurchased() {
+	redirectIfThemePurchased = () => {
 		const purchases = getPurchases( this.props );
 
 		if (
@@ -198,9 +220,9 @@ const CheckoutThankYou = React.createClass( {
 
 			page.redirect( '/themes/' + this.props.selectedSite.slug );
 		}
-	},
+	};
 
-	goBack() {
+	goBack = () => {
 		if ( this.isDataLoaded() && ! this.isGenericReceipt() ) {
 			const purchases = getPurchases( this.props );
 			const site = this.props.selectedSite.slug;
@@ -226,16 +248,16 @@ const CheckoutThankYou = React.createClass( {
 		}
 
 		return page( `/stats/insights/${ this.props.selectedSite.slug }` );
-	},
+	};
 
-	isEligibleForLiveChat() {
+	isEligibleForLiveChat = () => {
 		const { planSlug } = this.props;
 		return planSlug === PLAN_JETPACK_BUSINESS || planSlug === PLAN_JETPACK_BUSINESS_MONTHLY;
-	},
+	};
 
-	isNewUser() {
+	isNewUser = () => {
 		return moment( this.props.userDate ).isAfter( moment().subtract( 2, 'hours' ) );
-	},
+	};
 
 	render() {
 		let purchases = [],
@@ -267,9 +289,9 @@ const CheckoutThankYou = React.createClass( {
 			return <RebrandCitiesThankYou receipt={ this.props.receipt } />;
 		}
 
-		const { signupIsStore } = this.props;
+		const { hasPendingAT, isAtomicSite } = this.props;
 
-		if ( wasDotcomPlanPurchased && signupIsStore ) {
+		if ( wasDotcomPlanPurchased && ( hasPendingAT || isAtomicSite ) ) {
 			return (
 				<Main className="checkout-thank-you">
 					{ this.renderConfirmationNotice() }
@@ -334,7 +356,7 @@ const CheckoutThankYou = React.createClass( {
 				</Card>
 			</Main>
 		);
-	},
+	}
 
 	/**
 	 * Retrieves the component (and any corresponding data) that should be displayed according to the type of purchase
@@ -343,7 +365,7 @@ const CheckoutThankYou = React.createClass( {
 	 * @returns {*[]} an array of varying size with the component instance,
 	 * then an optional purchase object possibly followed by a domain name
 	 */
-	getComponentAndPrimaryPurchaseAndDomain() {
+	getComponentAndPrimaryPurchaseAndDomain = () => {
 		if ( this.isDataLoaded() && ! this.isGenericReceipt() ) {
 			const purchases = getPurchases( this.props ),
 				failedPurchases = getFailedPurchases( this.props );
@@ -369,6 +391,8 @@ const CheckoutThankYou = React.createClass( {
 				return [ DomainMappingDetails, ...findPurchaseAndDomain( purchases, isDomainMapping ) ];
 			} else if ( purchases.some( isSiteRedirect ) ) {
 				return [ SiteRedirectDetails, ...findPurchaseAndDomain( purchases, isSiteRedirect ) ];
+			} else if ( purchases.some( isDomainTransfer ) ) {
+				return [ false, ...findPurchaseAndDomain( purchases, isDomainTransfer ) ];
 			} else if ( purchases.some( isChargeback ) ) {
 				return [ ChargebackDetails, find( purchases, isChargeback ) ];
 			} else if ( purchases.some( isGuidedTransfer ) ) {
@@ -377,9 +401,9 @@ const CheckoutThankYou = React.createClass( {
 		}
 
 		return [];
-	},
+	};
 
-	productRelatedMessages() {
+	productRelatedMessages = () => {
 		const { selectedSite, sitePlans } = this.props,
 			purchases = getPurchases( this.props ),
 			failedPurchases = getFailedPurchases( this.props ),
@@ -437,22 +461,23 @@ const CheckoutThankYou = React.createClass( {
 				) }
 			</div>
 		);
-	},
-} );
+	};
+}
 
 export default connect(
 	( state, props ) => {
 		const siteId = getSelectedSiteId( state );
 		const planSlug = getSitePlanSlug( state, siteId );
-		const siteOptions = getSiteOptions( state, siteId );
 
 		return {
 			planSlug,
 			receipt: getReceiptById( state, props.receiptId ),
+			gsuiteReceipt: props.gsuiteReceiptId ? getReceiptById( state, props.gsuiteReceiptId ) : null,
 			sitePlans: getPlansBySite( state, props.selectedSite ),
 			user: getCurrentUser( state ),
 			userDate: getCurrentUserDate( state ),
-			signupIsStore: get( siteOptions, 'signup_is_store', false ),
+			hasPendingAT: hasSitePendingAutomatedTransfer( state, siteId ),
+			isAtomicSite: isSiteAutomatedTransfer( state, siteId ),
 		};
 	},
 	dispatch => {

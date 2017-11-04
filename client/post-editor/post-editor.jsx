@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import createReactClass from 'create-react-class';
 import ReactDom from 'react-dom';
 import page from 'page';
 import PropTypes from 'prop-types';
@@ -46,6 +47,7 @@ import {
 	isConfirmationSidebarEnabled,
 	isEditorOnlyRouteInHistory,
 } from 'state/ui/editor/selectors';
+import { recordTracksEvent } from 'state/analytics/actions';
 import { editPost, receivePost, savePostSuccess } from 'state/posts/actions';
 import { getPostEdits, isEditedPostDirty } from 'state/posts/selectors';
 import { getCurrentUserId } from 'state/current-user/selectors';
@@ -76,7 +78,9 @@ import {
 } from 'post-editor/editor-sidebar/constants';
 import { removep } from 'lib/formatting';
 
-export const PostEditor = React.createClass( {
+export const PostEditor = createReactClass( {
+	displayName: 'PostEditor',
+
 	propTypes: {
 		siteId: PropTypes.number,
 		preferences: PropTypes.object,
@@ -302,6 +306,12 @@ export const PostEditor = React.createClass( {
 		if ( isWithinBreakpoint( '<660px' ) ) {
 			this.props.setLayoutFocus( 'content' );
 		}
+
+		this.trackLoadRevision();
+	},
+
+	trackLoadRevision() {
+		this.props.recordTracksEvent( 'calypso_editor_post_revisions_load_revision' );
 	},
 
 	render: function() {
@@ -365,6 +375,7 @@ export const PostEditor = React.createClass( {
 						nestedSidebar={ this.state.nestedSidebar }
 						setNestedSidebar={ this.setNestedSidebar }
 						selectRevision={ this.selectRevision }
+						isSidebarOpened={ this.props.layoutFocus === 'sidebar' }
 					/>
 					<div className="post-editor__content">
 						<div className="post-editor__content-editor">
@@ -1410,6 +1421,7 @@ export default connect(
 				setLayoutFocus,
 				setNextLayoutFocus,
 				saveConfirmationSidebarPreference,
+				recordTracksEvent,
 			},
 			dispatch
 		);

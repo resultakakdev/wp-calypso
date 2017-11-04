@@ -30,6 +30,30 @@ export function getOrderLineItemTax( order, id ) {
 }
 
 /**
+ * Get the total tax for a given fee
+ *
+ * @param {Object} order An order as returned from API
+ * @param {Number} id The ID of a fee line in this order
+ * @return {Float} Tax amount as a decimal number
+ */
+export function getOrderFeeTax( order, id ) {
+	const items = get( order, 'fee_lines', [] );
+	const tax = get( find( items, { id } ), 'taxes[0].total', 0 );
+	return parseFloat( tax ) || 0;
+}
+
+/**
+ * Get the total tax for all fees in an order (total of all fee lines)
+ *
+ * @param {Object} order An order as returned from API
+ * @return {Float} Tax amount as a decimal number
+ */
+export function getOrderFeeTotalTax( order ) {
+	const lines = get( order, 'fee_lines', [] );
+	return reduce( lines, ( sum, value ) => sum + getOrderFeeTax( order, value.id ), 0 );
+}
+
+/**
  * Get the total tax for the shipping value
  *
  * @param {Object} order An order as returned from API
@@ -60,16 +84,6 @@ export function getOrderSubtotalTax( order ) {
 export function getOrderTotalTax( order ) {
 	const subtotal = getOrderSubtotalTax( order );
 	const shipping = getOrderShippingTax( order );
-	return subtotal + shipping;
-}
-
-/**
- * Get the refund value on a given order
- *
- * @param {Object} order An order as returned from API
- * @return {Float} The refund amount as a decimal number
- */
-export function getOrderRefundTotal( order ) {
-	const refunds = get( order, 'refunds', [] );
-	return reduce( refunds, ( sum, value ) => sum + parseFloat( value.total ), 0 );
+	const fees = getOrderFeeTotalTax( order );
+	return subtotal + shipping + fees;
 }

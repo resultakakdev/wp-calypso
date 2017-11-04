@@ -5,9 +5,9 @@
  */
 
 import React from 'react';
-import classnames from 'classnames';
 import { some } from 'lodash';
 import { localize } from 'i18n-calypso';
+import Gridicon from 'gridicons';
 
 /**
  * Internal dependencies
@@ -15,8 +15,6 @@ import { localize } from 'i18n-calypso';
 import PayButton from './pay-button';
 import CreditCardSelector from './credit-card-selector';
 import TermsOfService from './terms-of-service';
-import PaymentBox from './payment-box';
-import analytics from 'lib/analytics';
 import cartValues from 'lib/cart-values';
 import {
 	BEFORE_SUBMIT,
@@ -34,35 +32,33 @@ import { PLAN_BUSINESS } from 'lib/plans/constants';
 import ProgressBar from 'components/progress-bar';
 import CartToggle from './cart-toggle';
 
-const CreditCardPaymentBox = React.createClass( {
-	getInitialState: function() {
-		return {
-			progress: 0,
-			previousCart: null,
-		};
-	},
+class CreditCardPaymentBox extends React.Component {
+	state = {
+		progress: 0,
+		previousCart: null,
+	};
 
-	componentWillReceiveProps: function( nextProps ) {
+	componentWillReceiveProps( nextProps ) {
 		if (
 			! this.submitting( this.props.transactionStep ) &&
 			this.submitting( nextProps.transactionStep )
 		) {
 			this.timer = setInterval( this.tick, 100 );
 		}
-	},
+	}
 
-	componentWillUnmount: function() {
+	componentWillUnmount() {
 		clearInterval( this.timer );
-	},
+	}
 
-	tick: function() {
+	tick = () => {
 		// increase the progress of the progress bar by 0.5% of the remaining progress each tick
 		const progress = this.state.progress + 1 / 200 * ( 100 - this.state.progress );
 
 		this.setState( { progress } );
-	},
+	};
 
-	submitting: function( transactionStep ) {
+	submitting = transactionStep => {
 		switch ( transactionStep.name ) {
 			case BEFORE_SUBMIT:
 				return false;
@@ -87,49 +83,36 @@ const CreditCardPaymentBox = React.createClass( {
 			default:
 				return false;
 		}
-	},
+	};
 
-	handleToggle: function( event ) {
-		event.preventDefault();
-
-		analytics.ga.recordEvent( 'Upgrades', 'Clicked Or Use Paypal Link' );
-		analytics.tracks.recordEvent( 'calypso_checkout_switch_to_paypal' );
-		this.props.onToggle( 'paypal' );
-	},
-
-	progressBar: function() {
+	progressBar = () => {
 		return (
 			<div className="credit-card-payment-box__progress-bar">
 				{ this.props.translate( 'Processing payment…' ) }
 				<ProgressBar value={ Math.round( this.state.progress ) } isPulsing />
 			</div>
 		);
-	},
+	};
 
-	paymentButtons: function() {
+	paymentButtons = () => {
 		const cart = this.props.cart,
 			hasBusinessPlanInCart = some( cart.products, { product_slug: PLAN_BUSINESS } ),
 			showPaymentChatButton =
 				config.isEnabled( 'upgrades/presale-chat' ) &&
 				abtest( 'presaleChatButton' ) === 'showChatButton' &&
 				hasBusinessPlanInCart,
-			paypalButtonClasses = classnames( 'credit-card-payment-box__switch-link', {
-				'credit-card-payment-box__switch-link-left': showPaymentChatButton,
-			} );
+			paymentButtonClasses = 'payment-box__payment-buttons';
 
 		return (
-			<div className="payment-box__payment-buttons">
+			<div className={ paymentButtonClasses }>
 				<PayButton cart={ this.props.cart } transactionStep={ this.props.transactionStep } />
 
-				{ cartValues.isPayPalExpressEnabled( cart ) ? (
-					<a className={ paypalButtonClasses } href="" onClick={ this.handleToggle }>
-						{ this.props.translate( 'or use {{paypal/}}', {
-							components: {
-								paypal: <img src="/calypso/images/upgrades/paypal.svg" alt="PayPal" width="80" />,
-							},
-						} ) }
-					</a>
-				) : null }
+				<div className="checkout__secure-payment">
+					<div className="checkout__secure-payment-content">
+						<Gridicon icon="lock" />
+						{ this.props.translate( 'Secure Payment' ) }
+					</div>
+				</div>
 
 				<CartCoupon cart={ cart } />
 
@@ -144,26 +127,26 @@ const CreditCardPaymentBox = React.createClass( {
 				) }
 			</div>
 		);
-	},
+	};
 
-	paymentBoxActions: function() {
+	paymentBoxActions = () => {
 		let content = this.paymentButtons();
 		if ( this.props.transactionStep && this.submitting( this.props.transactionStep ) ) {
 			content = this.progressBar();
 		}
 
 		return <div className="payment-box-actions">{ content }</div>;
-	},
+	};
 
-	submit: function( event ) {
+	submit = event => {
 		event.preventDefault();
 		this.setState( {
 			progress: 0,
 		} );
 		this.props.onSubmit( event );
-	},
+	};
 
-	content: function() {
+	render = () => {
 		var cart = this.props.cart;
 
 		return (
@@ -182,18 +165,7 @@ const CreditCardPaymentBox = React.createClass( {
 				{ this.paymentBoxActions() }
 			</form>
 		);
-	},
-
-	render: function() {
-		return (
-			<PaymentBox
-				classSet="credit-card-payment-box"
-				title={ this.props.translate( 'Secure Payment' ) }
-			>
-				{ this.content() }
-			</PaymentBox>
-		);
-	},
-} );
+	};
+}
 
 export default localize( CreditCardPaymentBox );

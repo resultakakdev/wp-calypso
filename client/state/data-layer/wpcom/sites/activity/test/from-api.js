@@ -44,6 +44,8 @@ const VALID_API_ITEM = deepFreeze( {
 	gridicon: 'posts',
 	activity_id: 'foobarbaz',
 	status: 'warning',
+	is_rewindable: false,
+	rewind_id: 0,
 } );
 
 describe( 'processItem', () => {
@@ -55,6 +57,8 @@ describe( 'processItem', () => {
 				'activityGroup',
 				'activityIcon',
 				'activityId',
+				'activityIsRewindable',
+				'rewindId',
 				'activityName',
 				'activityStatus',
 				'activityTitle',

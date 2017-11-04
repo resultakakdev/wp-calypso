@@ -13,32 +13,33 @@ import { connect } from 'react-redux';
 /**
  * Internal dependencies
  */
-import Button from 'components/button';
 import DisconnectJetpackDialog from 'blocks/disconnect-jetpack/dialog';
+import Button from 'components/button';
 import QuerySitePlans from 'components/data/query-site-plans';
-import { recordGoogleEvent } from 'state/analytics/actions';
+import { isEnabled } from 'config';
+import {
+	recordGoogleEvent as recordGoogleEventAction,
+	recordTracksEvent as recordTracksEventAction,
+} from 'state/analytics/actions';
 
 class DisconnectJetpackButton extends Component {
-	constructor( props ) {
-		super( props );
-		this.state = { dialogVisible: false };
-	}
+	state = { dialogVisible: false };
 
-	handleClick = event => {
-		event.preventDefault();
-		const { isMock, recordGoogleEvent: recordGAEvent } = this.props;
+	handleClick = () => {
+		const { isMock, recordGoogleEvent, recordTracksEvent } = this.props;
 
 		if ( isMock ) {
 			return;
 		}
 		this.setState( { dialogVisible: true } );
-		recordGAEvent( 'Jetpack', 'Clicked To Open Disconnect Jetpack Dialog' );
+		recordGoogleEvent( 'Jetpack', 'Clicked To Open Disconnect Jetpack Dialog' );
+		recordTracksEvent( 'calypso_jetpack_disconnect_start' );
 	};
 
 	hideDialog = () => {
-		const { recordGoogleEvent: recordGAEvent } = this.props;
+		const { recordGoogleEvent } = this.props;
 		this.setState( { dialogVisible: false } );
-		recordGAEvent( 'Jetpack', 'Clicked To Cancel Disconnect Jetpack Dialog' );
+		recordGoogleEvent( 'Jetpack', 'Clicked To Cancel Disconnect Jetpack Dialog' );
 	};
 
 	render() {
@@ -63,6 +64,11 @@ class DisconnectJetpackButton extends Component {
 				/* eslint-disable wpcalypso/jsx-classname-namespace */
 				className="disconnect-jetpack-button"
 				compact
+				href={
+					isEnabled( 'manage/site-settings/disconnect-flow' ) ? (
+						'/settings/disconnect-site/' + site.slug
+					) : null
+				}
 				id={ `disconnect-jetpack-${ site.ID }` }
 				onClick={ this.handleClick }
 				scary
@@ -72,13 +78,15 @@ class DisconnectJetpackButton extends Component {
 						context: 'Jetpack: Action user takes to disconnect Jetpack site from .com',
 					} ) }
 				<QuerySitePlans siteId={ site.ID } />
-				<DisconnectJetpackDialog
-					isVisible={ this.state.dialogVisible }
-					onClose={ this.hideDialog }
-					isBroken={ false }
-					siteId={ site.ID }
-					disconnectHref={ this.props.redirect }
-				/>
+				{ ! isEnabled( 'manage/site-settings/disconnect-flow' ) && (
+					<DisconnectJetpackDialog
+						isVisible={ this.state.dialogVisible }
+						onClose={ this.hideDialog }
+						isBroken={ false }
+						siteId={ site.ID }
+						disconnectHref={ this.props.redirect }
+					/>
+				) }
 			</Button>
 		);
 	}
@@ -92,10 +100,14 @@ DisconnectJetpackButton.propTypes = {
 	isMock: PropTypes.bool,
 	text: PropTypes.string,
 	recordGoogleEvent: PropTypes.func.isRequired,
+	recordTracksEvent: PropTypes.func.isRequired,
 };
 
 DisconnectJetpackButton.defaultProps = {
 	linkDisplay: true,
 };
 
-export default connect( null, { recordGoogleEvent } )( localize( DisconnectJetpackButton ) );
+export default connect( null, {
+	recordGoogleEvent: recordGoogleEventAction,
+	recordTracksEvent: recordTracksEventAction,
+} )( localize( DisconnectJetpackButton ) );

@@ -3,7 +3,7 @@
  *
  * @format
  */
-import { delay, noop } from 'lodash';
+import { delay } from 'lodash';
 
 /**
  * Internal dependencies
@@ -14,8 +14,9 @@ import { dispatchRequest } from 'state/data-layer/wpcom-http/utils';
 import { requestSite } from 'state/sites/actions';
 import { http } from 'state/data-layer/wpcom-http/actions';
 import {
-	getAutomatedTransferStatus,
+	fetchAutomatedTransferStatus,
 	setAutomatedTransferStatus,
+	automatedTransferStatusFetchingFailure,
 } from 'state/automated-transfer/actions';
 import { transferStates } from 'state/automated-transfer/constants';
 
@@ -43,7 +44,7 @@ export const receiveStatus = (
 
 	dispatch( setAutomatedTransferStatus( siteId, status, pluginId ) );
 	if ( status !== transferStates.ERROR && status !== transferStates.COMPLETE ) {
-		delay( dispatch, 3000, getAutomatedTransferStatus( siteId ) );
+		delay( dispatch, 3000, fetchAutomatedTransferStatus( siteId ) );
 	}
 
 	if ( status === transferStates.COMPLETE ) {
@@ -60,6 +61,12 @@ export const receiveStatus = (
 	}
 };
 
+export const requestingStatusFailure = ( { dispatch }, { siteId } ) => {
+	dispatch( automatedTransferStatusFetchingFailure( siteId ) );
+};
+
 export default {
-	[ AUTOMATED_TRANSFER_STATUS_REQUEST ]: [ dispatchRequest( requestStatus, receiveStatus, noop ) ],
+	[ AUTOMATED_TRANSFER_STATUS_REQUEST ]: [
+		dispatchRequest( requestStatus, receiveStatus, requestingStatusFailure ),
+	],
 };

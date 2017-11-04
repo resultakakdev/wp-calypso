@@ -1,11 +1,9 @@
+/** @format */
 /**
  * External dependencies
- *
- * @format
  */
-
+import { Component } from 'react';
 import PropTypes from 'prop-types';
-import React from 'react';
 import { isEqual } from 'lodash';
 import debugModule from 'debug';
 
@@ -22,21 +20,19 @@ import pollers from 'lib/data-poller';
  */
 const debug = debugModule( 'calypso:followers-data' );
 
-export default React.createClass( {
-	displayName: 'FollowersData',
-
-	propTypes: {
+export default class FollowersData extends Component {
+	static propTypes = {
 		fetchOptions: PropTypes.object.isRequired,
-	},
+	};
 
-	getInitialState() {
-		return {
-			followers: false,
-			totalFollowers: false,
-			currentPage: false,
-			fetchInitialized: false,
-		};
-	},
+	static initialState = {
+		followers: false,
+		totalFollowers: false,
+		currentPage: false,
+		fetchInitialized: false,
+	};
+
+	state = this.constructor.initialState;
 
 	componentDidMount() {
 		FollowersStore.on( 'change', this.refreshFollowers );
@@ -46,14 +42,14 @@ export default React.createClass( {
 			FollowersActions.fetchFollowers.bind( FollowersActions, this.props.fetchOptions, true ),
 			{ leading: false }
 		);
-	},
+	}
 
 	componentWillReceiveProps( nextProps ) {
 		if ( ! nextProps.fetchOptions ) {
 			return;
 		}
 		if ( ! isEqual( this.props.fetchOptions, nextProps.fetchOptions ) ) {
-			this.setState( this.getInitialState() );
+			this.setState( this.constructor.initialState );
 			this.fetchIfEmpty( nextProps.fetchOptions );
 			pollers.remove( this._poller );
 			this._poller = pollers.add(
@@ -62,14 +58,14 @@ export default React.createClass( {
 				{ leading: false }
 			);
 		}
-	},
+	}
 
 	componentWillUnmount() {
 		FollowersStore.removeListener( 'change', this.refreshFollowers );
 		pollers.remove( this._poller );
-	},
+	}
 
-	fetchIfEmpty( fetchOptions ) {
+	fetchIfEmpty = fetchOptions => {
 		fetchOptions = fetchOptions || this.props.fetchOptions;
 		if ( ! fetchOptions || ! fetchOptions.siteId ) {
 			return;
@@ -88,9 +84,9 @@ export default React.createClass( {
 			this.setState( { fetchInitialized: true } );
 		}.bind( this );
 		setTimeout( defer, 0 );
-	},
+	};
 
-	isFetching: function() {
+	isFetching = () => {
 		let fetchOptions = this.props.fetchOptions;
 		if ( ! fetchOptions.siteId ) {
 			debug( 'Is fetching because siteId is falsey' );
@@ -108,9 +104,9 @@ export default React.createClass( {
 			return true;
 		}
 		return false;
-	},
+	};
 
-	refreshFollowers( fetchOptions ) {
+	refreshFollowers = fetchOptions => {
 		fetchOptions = fetchOptions || this.props.fetchOptions;
 		debug( 'Refreshing followers: ' + JSON.stringify( fetchOptions ) );
 		this.setState( {
@@ -118,9 +114,9 @@ export default React.createClass( {
 			totalFollowers: FollowersStore.getPaginationData( fetchOptions ).totalFollowers,
 			currentPage: FollowersStore.getPaginationData( fetchOptions ).followersCurrentPage,
 		} );
-	},
+	};
 
 	render() {
 		return passToChildren( this, Object.assign( {}, this.state, { fetching: this.isFetching() } ) );
-	},
-} );
+	}
+}

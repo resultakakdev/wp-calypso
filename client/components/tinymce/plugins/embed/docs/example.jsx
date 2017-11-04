@@ -16,12 +16,14 @@ import Card from 'components/card';
 import EmbedDialog from '../dialog';
 import { getCurrentUser } from 'state/current-user/selectors';
 
-class EmbedDialogExample extends PureComponent {
+export default class EmbedDialogExample extends PureComponent {
+ 	static displayName = 'EmbedDialog';
+
 	static propTypes = {
 		siteId: PropTypes.number.isRequired,
 	};
 
-	state = {
+  state = {
 		embedUrl: 'https://www.youtube.com/watch?v=R54QEvTyqO4',
 		showDialog: false,
 	};

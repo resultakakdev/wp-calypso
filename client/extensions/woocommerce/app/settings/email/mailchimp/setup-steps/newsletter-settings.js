@@ -15,16 +15,24 @@ import { isRequestingLists } from 'woocommerce/state/sites/settings/email/select
 import FormFieldset from 'components/forms/form-fieldset';
 import FormLabel from 'components/forms/form-label';
 import FormSelect from 'components/forms/form-select';
+import FormSettingExplanation from 'components/forms/form-setting-explanation';
+import Notice from 'components/notice';
 import QueryMailChimpLists from 'woocommerce/state/sites/settings/email/queryLists';
 
 const NewsletterSettings = ( { storeData = {}, onChange, siteId, isRequesting, translate } ) => {
 	return (
 		<FormFieldset className="setup-steps__store-info-field">
 			<QueryMailChimpLists siteId={ siteId } />
-			<div>{ translate( 'Pick a list, you will not able to change it for now so pick carefully.' ) }</div>
-			<div>{ translate( 'Create your list at mailchimp.com if you have not done it aready.' ) }</div>
+			<p>{ translate( 'Finally, choose a mailing list to sync with your store.' ) }</p>
+			<Notice>
+				<p>{ translate(
+					'Choose your list carefully as you wont be able to change it later. ' +
+					'Create a list in MailChimp if you have not already done so.'
+					) }
+				</p>
+			</Notice>
 			<FormLabel>
-				{ translate( 'Newsletter' ) }
+				{ translate( 'Mailing list' ) }
 			</FormLabel>
 			<FormSelect
 				name={ 'mailchimp_list' }
@@ -37,6 +45,12 @@ const NewsletterSettings = ( { storeData = {}, onChange, siteId, isRequesting, t
 					) )
 				}
 			</FormSelect>
+			<FormSettingExplanation className="setup-steps__sync-explanation">
+				{ translate(
+					'We\'ll sync your orders with this list so you can segment based on purchase history. We\'ll also ' +
+						'sync products so you can add relevant product information to customer emails.'
+				) }
+			</FormSettingExplanation>
 		</FormFieldset>
 	);
 };

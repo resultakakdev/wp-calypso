@@ -7,6 +7,7 @@
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import React from 'react';
+import createReactClass from 'create-react-class';
 import { get, find, defer } from 'lodash';
 
 /**
@@ -18,6 +19,7 @@ import FreeTrialConfirmationBox from './free-trial-confirmation-box';
 import FreeCartPaymentBox from './free-cart-payment-box';
 import CreditCardPaymentBox from './credit-card-payment-box';
 import PayPalPaymentBox from './paypal-payment-box';
+import SourcePaymentBox from './source-payment-box';
 import storeTransactions from 'lib/store-transactions';
 import analytics from 'lib/analytics';
 import TransactionStepsMixin from './transaction-steps-mixin';
@@ -27,6 +29,7 @@ import debugFactory from 'debug';
 import cartValues, { isPaidForFullyInCredits, isFree, cartItems } from 'lib/cart-values';
 import Notice from 'components/notice';
 import { preventWidows } from 'lib/formatting';
+import PaymentBox from './payment-box';
 
 /**
  * Module variables
@@ -35,7 +38,8 @@ const { hasFreeTrial } = cartItems;
 const countriesListForPayments = countriesList.forPayments();
 const debug = debugFactory( 'calypso:checkout:payment' );
 
-const SecurePaymentForm = React.createClass( {
+const SecurePaymentForm = createReactClass( {
+	displayName: 'SecurePaymentForm',
 	mixins: [ TransactionStepsMixin ],
 
 	propTypes: {
@@ -53,8 +57,7 @@ const SecurePaymentForm = React.createClass( {
 	},
 
 	getVisiblePaymentBox( cart, paymentMethods ) {
-		const primary = 0,
-			secondary = 1;
+		let i;
 
 		if ( isPaidForFullyInCredits( cart ) ) {
 			return 'credits';
@@ -64,10 +67,12 @@ const SecurePaymentForm = React.createClass( {
 			return 'free-trial';
 		} else if ( this.state && this.state.userSelectedPaymentBox ) {
 			return this.state.userSelectedPaymentBox;
-		} else if ( cartValues.isPaymentMethodEnabled( cart, get( paymentMethods, [ primary ] ) ) ) {
-			return paymentMethods[ primary ];
-		} else if ( cartValues.isPaymentMethodEnabled( cart, get( paymentMethods, [ secondary ] ) ) ) {
-			return paymentMethods[ secondary ];
+		}
+
+		for ( i = 0; i < paymentMethods.length; i++ ) {
+			if ( cartValues.isPaymentMethodEnabled( cart, get( paymentMethods, [ i ] ) ) ) {
+				return paymentMethods[ i ];
+			}
 		}
 
 		return null;
@@ -146,7 +151,7 @@ const SecurePaymentForm = React.createClass( {
 		} );
 	},
 
-	renderCreditsPayentBox() {
+	renderCreditsPaymentBox() {
 		return (
 			<CreditsPaymentBox
 				cart={ this.props.cart }
@@ -180,30 +185,64 @@ const SecurePaymentForm = React.createClass( {
 
 	renderCreditCardPaymentBox() {
 		return (
-			<CreditCardPaymentBox
-				cards={ this.props.cards }
-				transaction={ this.props.transaction }
+			<PaymentBox
+				classSet="credit-card-payment-box"
 				cart={ this.props.cart }
-				countriesList={ countriesListForPayments }
-				initialCard={ this.getInitialCard() }
-				selectedSite={ this.props.selectedSite }
-				onToggle={ this.selectPaymentBox }
-				onSubmit={ this.handlePaymentBoxSubmit }
-				transactionStep={ this.props.transaction.step }
-			/>
+				paymentMethods={ this.props.paymentMethods }
+				currentPaymentMethod="credit-card"
+				onSelectPaymentMethod={ this.selectPaymentBox }
+			>
+				<CreditCardPaymentBox
+					cards={ this.props.cards }
+					transaction={ this.props.transaction }
+					cart={ this.props.cart }
+					countriesList={ countriesListForPayments }
+					initialCard={ this.getInitialCard() }
+					selectedSite={ this.props.selectedSite }
+					onSubmit={ this.handlePaymentBoxSubmit }
+					transactionStep={ this.props.transaction.step }
+				/>
+			</PaymentBox>
 		);
 	},
 
 	renderPayPalPaymentBox() {
 		return (
-			<PayPalPaymentBox
+			<PaymentBox
+				classSet="paypal-payment-box"
 				cart={ this.props.cart }
-				transaction={ this.props.transaction }
-				countriesList={ countriesListForPayments }
-				selectedSite={ this.props.selectedSite }
-				onToggle={ this.selectPaymentBox }
-				redirectTo={ this.props.redirectTo }
-			/>
+				paymentMethods={ this.props.paymentMethods }
+				currentPaymentMethod="paypal"
+				onSelectPaymentMethod={ this.selectPaymentBox }
+			>
+				<PayPalPaymentBox
+					cart={ this.props.cart }
+					transaction={ this.props.transaction }
+					countriesList={ countriesListForPayments }
+					selectedSite={ this.props.selectedSite }
+					redirectTo={ this.props.redirectTo }
+				/>
+			</PaymentBox>
+		);
+	},
+
+	renderSourcePaymentBox( paymentType ) {
+		return (
+			<PaymentBox
+				classSet="source-payment-box"
+				cart={ this.props.cart }
+				paymentMethods={ this.props.paymentMethods }
+				currentPaymentMethod={ paymentType }
+				onSelectPaymentMethod={ this.selectPaymentBox }
+			>
+				<SourcePaymentBox
+					cart={ this.props.cart }
+					transaction={ this.props.transaction }
+					selectedSite={ this.props.selectedSite }
+					paymentType={ paymentType }
+					redirectTo={ this.props.redirectTo }
+				/>
+			</PaymentBox>
 		);
 	},
 
@@ -236,7 +275,7 @@ const SecurePaymentForm = React.createClass( {
 
 		switch ( visiblePaymentBox ) {
 			case 'credits':
-				return this.renderCreditsPayentBox();
+				return this.renderCreditsPaymentBox();
 
 			case 'free-trial':
 				return this.renderFreeTrialConfirmationBox();
@@ -245,14 +284,46 @@ const SecurePaymentForm = React.createClass( {
 				return this.renderFreeCartPaymentBox();
 
 			case 'credit-card':
-				return this.renderCreditCardPaymentBox();
+				return (
+					<div>
+						{ this.renderGreatChoiceHeader() }
+						{ this.renderCreditCardPaymentBox() }
+					</div>
+				);
 
 			case 'paypal':
-				return this.renderPayPalPaymentBox();
+				return (
+					<div>
+						{ this.renderGreatChoiceHeader() }
+						{ this.renderPayPalPaymentBox() }
+					</div>
+				);
+
+			case 'ideal':
+				return (
+					<div>
+						{ this.renderGreatChoiceHeader() }
+						{ this.renderSourcePaymentBox( visiblePaymentBox ) }
+					</div>
+				);
+
 			default:
 				debug( 'WARN: %o payment unknown', visiblePaymentBox );
 				return null;
 		}
+	},
+
+	renderGreatChoiceHeader() {
+		const formatHeaderClass = 'formatted-header',
+			formatHeaderTitleClass = 'formatted-header__title';
+
+		return (
+			<header className={ formatHeaderClass }>
+				<h1 className={ formatHeaderTitleClass }>
+					{ this.props.translate( 'Great choice! How would you like to pay?' ) }
+				</h1>
+			</header>
+		);
 	},
 
 	render() {

@@ -1,11 +1,9 @@
+/** @format */
 /**
  * External dependencies
- *
- * @format
  */
-
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import React from 'react';
 import { connect } from 'react-redux';
 import classNames from 'classnames';
 import { get, some } from 'lodash';
@@ -20,19 +18,19 @@ import SpinnerLine from 'components/spinner-line';
 import ImagePreloader from 'components/image-preloader';
 import { getSelectedSiteId } from 'state/ui/selectors';
 
-const EditorFeaturedImagePreview = React.createClass( {
-	propTypes: {
+class EditorFeaturedImagePreview extends Component {
+	static propTypes = {
 		siteId: PropTypes.number,
 		image: PropTypes.object,
 		maxWidth: PropTypes.number,
-	},
+	};
 
-	getInitialState() {
-		return {
-			height: null,
-			transientSrc: null,
-		};
-	},
+	static initialState = {
+		height: null,
+		transientSrc: null,
+	};
+
+	state = this.constructor.initialState;
 
 	componentWillReceiveProps( nextProps ) {
 		const currentSrc = this.src();
@@ -54,9 +52,9 @@ const EditorFeaturedImagePreview = React.createClass( {
 		}
 
 		this.setState( nextState );
-	},
+	}
 
-	isReceivingPersistedImage( props, nextProps ) {
+	isReceivingPersistedImage = ( props, nextProps ) => {
 		const { siteId } = this.props;
 		if ( siteId !== nextProps.siteId ) {
 			return false;
@@ -72,9 +70,9 @@ const EditorFeaturedImagePreview = React.createClass( {
 		// to its persisted copy, so we can compare the resolved object IDs
 		const media = MediaStore.get( siteId, image.ID );
 		return media && media.ID === nextProps.image.ID;
-	},
+	};
 
-	src( props = this.props ) {
+	src = ( props = this.props ) => {
 		if ( ! props.image ) {
 			return;
 		}
@@ -83,15 +81,15 @@ const EditorFeaturedImagePreview = React.createClass( {
 			maxWidth: this.props.maxWidth,
 			size: 'post-thumbnail',
 		} );
-	},
+	};
 
-	clearState() {
+	clearState = () => {
 		if ( ! some( this.state ) ) {
 			return;
 		}
 
-		this.setState( this.getInitialState() );
-	},
+		this.setState( this.constructor.initialState );
+	};
 
 	render() {
 		const { height } = this.state;
@@ -118,8 +116,8 @@ const EditorFeaturedImagePreview = React.createClass( {
 				/>
 			</div>
 		);
-	},
-} );
+	}
+}
 
 export default connect( state => {
 	return {

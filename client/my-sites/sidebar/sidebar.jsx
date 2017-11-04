@@ -44,6 +44,7 @@ import {
 	hasJetpackSites,
 	isDomainOnlySite,
 	isSiteAutomatedTransfer,
+	hasSitePendingAutomatedTransfer,
 } from 'state/selectors';
 import {
 	getCustomizerUrl,
@@ -54,7 +55,8 @@ import {
 	isSitePreviewable,
 } from 'state/sites/selectors';
 import { getStatsPathForTab } from 'lib/route/path';
-import { abtest } from 'lib/abtest';
+import { getAutomatedTransferStatus } from 'state/automated-transfer/selectors';
+import { transferStates } from 'state/automated-transfer/constants';
 
 /**
  * Module variables
@@ -384,17 +386,25 @@ export class MySitesSidebar extends Component {
 			site,
 			siteSuffix,
 			translate,
+			siteHasBackgroundTransfer,
 		} = this.props;
+
+		if ( ! config.isEnabled( 'woocommerce/extension-dashboard' ) || ! site ) {
+			return null;
+		}
+
 		const storeLink = '/store' + siteSuffix;
-		const showStoreLink =
-			config.isEnabled( 'woocommerce/extension-dashboard' ) &&
-			site &&
+
+		const isJetpackOrAtomicSite =
 			isJetpack &&
 			canUserManageOptions &&
 			( config.isEnabled( 'woocommerce/store-on-non-atomic-sites' ) ||
 				this.props.isSiteAutomatedTransfer );
 
-		if ( ! showStoreLink ) {
+		if (
+			! isJetpackOrAtomicSite &&
+			! ( config.isEnabled( 'signup/atomic-store-flow' ) && siteHasBackgroundTransfer )
+		) {
 			return null;
 		}
 
@@ -568,10 +578,7 @@ export class MySitesSidebar extends Component {
 	};
 
 	getAddNewSiteUrl() {
-		if ( this.props.hasJetpackSites || abtest( 'newSiteWithJetpack' ) === 'showNewJetpackSite' ) {
-			return '/jetpack/new/?ref=calypso-selector';
-		}
-		return config( 'signup_url' ) + '?ref=calypso-selector';
+		return '/jetpack/new/?ref=calypso-selector';
 	}
 
 	addNewSite() {
@@ -692,6 +699,9 @@ function mapStateToProps( state ) {
 
 	const isPreviewShowing = getCurrentLayoutFocus( state ) === 'preview';
 
+	const transferStatus = getAutomatedTransferStatus( state, siteId );
+	const hasSitePendingAT = hasSitePendingAutomatedTransfer( state, siteId );
+
 	return {
 		canManagePlugins: canCurrentUserManagePlugins( state ),
 		canUserEditThemeOptions: canCurrentUser( state, siteId, 'edit_theme_options' ),
@@ -711,6 +721,7 @@ function mapStateToProps( state ) {
 		siteId,
 		site,
 		siteSuffix: site ? '/' + site.slug : '',
+		siteHasBackgroundTransfer: hasSitePendingAT && transferStatus !== transferStates.ERROR,
 	};
 }
 

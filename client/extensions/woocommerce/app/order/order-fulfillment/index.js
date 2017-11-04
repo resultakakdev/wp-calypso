@@ -9,13 +9,13 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 import Gridicon from 'gridicons';
 import { localize } from 'i18n-calypso';
+import { first } from 'lodash';
 
 /**
  * Internal dependencies
  */
 import { createNote } from 'woocommerce/state/sites/orders/notes/actions';
 import Button from 'components/button';
-import ButtonGroup from 'components/button-group';
 import config from 'config';
 import Dialog from 'components/dialog';
 import FormFieldset from 'components/forms/form-fieldset';
@@ -25,17 +25,17 @@ import FormTextInput from 'components/forms/form-text-input';
 import { isOrderFinished } from 'woocommerce/lib/order-status';
 import LabelPurchaseDialog from 'woocommerce/woocommerce-services/views/shipping-label/label-purchase-modal';
 import Notice from 'components/notice';
-import PopoverMenu from 'components/popover/menu';
-import PopoverMenuItem from 'components/popover/menu-item';
 import QueryLabels from 'woocommerce/woocommerce-services/components/query-labels';
 import { updateOrder } from 'woocommerce/state/sites/orders/actions';
 import { openPrintingFlow } from 'woocommerce/woocommerce-services/state/shipping-label/actions';
 import {
-	getLabelsCount,
-	getSelectedPaymentMethod,
-	isEnabled as areLabelsEnabled,
-	isLoaded as areLabelsLoaded,
+	getLabels,
+	areLabelsFullyLoaded,
 } from 'woocommerce/woocommerce-services/state/shipping-label/selectors';
+import {
+	areLabelsEnabled,
+	getSelectedPaymentMethodId,
+} from 'woocommerce/woocommerce-services/state/label-settings/selectors';
 
 const wcsEnabled = config.isEnabled( 'woocommerce/extension-wcservices' );
 
@@ -54,19 +54,13 @@ class OrderFulfillment extends Component {
 		errorMessage: false,
 		shouldEmail: false,
 		showDialog: false,
-		showPopoverMenu: false,
 		trackingNumber: '',
 	};
 
-	toggleDialog = () => {
+	toggleDialog = event => {
+		event && event.preventDefault();
 		this.setState( {
 			showDialog: ! this.state.showDialog,
-		} );
-	};
-
-	togglePopoverMenu = () => {
-		this.setState( {
-			showPopoverMenu: ! this.state.showPopoverMenu,
 		} );
 	};
 
@@ -110,15 +104,26 @@ class OrderFulfillment extends Component {
 		}
 	};
 
+	getOrderFulfilledMessage = () => {
+		const { labelsLoaded, labels, translate } = this.props;
+		const unknownCarrierMessage = translate( 'Order has been fulfilled' );
+		if ( ! labelsLoaded || ! labels.length ) {
+			return unknownCarrierMessage;
+		}
+
+		const label = first( this.props.labels );
+		if ( ! label || 'usps' !== label.carrier_id ) {
+			return unknownCarrierMessage;
+		}
+
+		return translate( 'Order has been fulfilled and will be shipped via USPS' );
+	};
+
 	getFulfillmentStatus = () => {
-		const { order, labelsLoaded, labelsCount, translate } = this.props;
+		const { order, translate } = this.props;
 		switch ( order.status ) {
 			case 'completed':
-				if ( labelsLoaded && labelsCount ) {
-					return translate( 'Order has been fulfilled and will be shipped via USPS' );
-				}
-
-				return translate( 'Order has been fulfilled' );
+				return this.getOrderFulfilledMessage();
 			case 'cancelled':
 				return translate( 'Order has been cancelled' );
 			case 'refunded':
@@ -139,14 +144,20 @@ class OrderFulfillment extends Component {
 			translate,
 			hasLabelsPaymentMethod,
 		} = this.props;
-		const isShippable = ! isOrderFinished( order.status );
-		const hideLabels = labelsLoaded && ( ! hasLabelsPaymentMethod || ! labelsEnabled );
+		const orderFinished = isOrderFinished( order.status );
+		const showLabels = wcsEnabled && labelsLoaded && labelsEnabled && hasLabelsPaymentMethod;
+		const labelsLoading = wcsEnabled && ! labelsLoaded;
 
-		if ( ! isShippable && ( ! wcsEnabled || hideLabels ) ) {
+		if ( orderFinished ) {
 			return null;
 		}
 
-		if ( ! wcsEnabled || hideLabels ) {
+		if ( labelsLoading ) {
+			const buttonClassName = 'is-placeholder';
+			return <Button className={ buttonClassName }>{ translate( 'Fulfill' ) }</Button>;
+		}
+
+		if ( ! showLabels ) {
 			return (
 				<Button primary onClick={ this.toggleDialog }>
 					{ translate( 'Fulfill' ) }
@@ -155,37 +166,19 @@ class OrderFulfillment extends Component {
 		}
 
 		const onLabelPrint = () => this.props.openPrintingFlow( order.id, site.ID );
-		const buttonClassName = classNames( {
-			'is-placeholder': ! labelsLoaded,
-		} );
 
-		if ( ! isShippable ) {
-			return (
-				<Button onClick={ onLabelPrint } className={ buttonClassName }>
-					{ translate( 'Print new label' ) }
-				</Button>
-			);
+		if ( orderFinished ) {
+			return <Button onClick={ onLabelPrint }>{ translate( 'Print new label' ) }</Button>;
 		}
 
 		return (
-			<div>
-				<ButtonGroup className="order-fulfillment__button-group">
-					<Button primary={ labelsLoaded } onClick={ onLabelPrint } className={ buttonClassName }>
-						{ translate( 'Print label & fulfill' ) }
-					</Button>
-					<Button onClick={ this.togglePopoverMenu } ref="popoverMenuButton">
-						<Gridicon icon="ellipsis" />
-					</Button>
-				</ButtonGroup>
-				<PopoverMenu
-					isVisible={ this.state.showPopoverMenu }
-					onClose={ this.togglePopoverMenu }
-					context={ this.refs && this.refs.popoverMenuButton }
-				>
-					<PopoverMenuItem onClick={ this.toggleDialog }>
-						{ translate( 'Fulfill without printing a label' ) }
-					</PopoverMenuItem>
-				</PopoverMenu>
+			<div className="order-fulfillment__print-container">
+				<a href="#" onClick={ this.toggleDialog }>
+					{ translate( 'Fulfill without printing a label' ) }
+				</a>
+				<Button primary={ labelsLoaded } onClick={ onLabelPrint }>
+					{ translate( 'Print label & fulfill' ) }
+				</Button>
 			</div>
 		);
 	}
@@ -252,7 +245,7 @@ class OrderFulfillment extends Component {
 						) }
 					</form>
 				</Dialog>
-				{ wcsEnabled && <QueryLabels orderId={ order.id } /> }
+				{ wcsEnabled && <QueryLabels orderId={ order.id } siteId={ site.ID } /> }
 				{ wcsEnabled && <LabelPurchaseDialog orderId={ order.id } siteId={ site.ID } /> }
 			</div>
 		);
@@ -261,14 +254,14 @@ class OrderFulfillment extends Component {
 
 export default connect(
 	( state, { order, site } ) => {
-		const labelsLoaded = wcsEnabled && Boolean( areLabelsLoaded( state, order.id, site.ID ) );
+		const labelsLoaded = wcsEnabled && Boolean( areLabelsFullyLoaded( state, order.id, site.ID ) );
 		const hasLabelsPaymentMethod =
-			wcsEnabled && labelsLoaded && getSelectedPaymentMethod( state, order.id, site.ID );
+			wcsEnabled && labelsLoaded && getSelectedPaymentMethodId( state, site.ID );
 
 		return {
 			labelsLoaded,
-			labelsEnabled: labelsLoaded && areLabelsEnabled( state, order.id, site.ID ),
-			labelsCount: labelsLoaded ? getLabelsCount( state, order.id, site.ID ) : 0,
+			labelsEnabled: areLabelsEnabled( state, site.ID ),
+			labels: getLabels( state, order.id, site.ID ),
 			hasLabelsPaymentMethod,
 		};
 	},

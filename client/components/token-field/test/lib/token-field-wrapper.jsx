@@ -1,9 +1,7 @@
+/** @format */
 /**
  * External dependencies
- *
- * @format
  */
-
 import React from 'react';
 
 /**
@@ -12,7 +10,7 @@ import React from 'react';
 import TokenField from 'components/token-field';
 import { unescapeAndFormatSpaces } from 'lib/formatting';
 
-var suggestions = [
+const suggestions = [
 	'the',
 	'of',
 	'and',
@@ -49,15 +47,13 @@ var suggestions = [
 	'sound',
 ];
 
-const TokenFieldWrapper = React.createClass( {
-	getInitialState: function() {
-		return {
-			tokenSuggestions: suggestions,
-			tokens: Object.freeze( [ 'foo', 'bar' ] ),
-		};
-	},
+class TokenFieldWrapper extends React.Component {
+	state = {
+		tokenSuggestions: suggestions,
+		tokens: Object.freeze( [ 'foo', 'bar' ] ),
+	};
 
-	render: function() {
+	render() {
 		return (
 			<TokenField
 				suggestions={ this.state.tokenSuggestions }
@@ -67,11 +63,11 @@ const TokenFieldWrapper = React.createClass( {
 				ref="tokenField"
 			/>
 		);
-	},
+	}
 
-	_onTokensChange: function( value ) {
+	_onTokensChange = value => {
 		this.setState( { tokens: value } );
-	},
-} );
+	};
+}
 
 export default TokenFieldWrapper;

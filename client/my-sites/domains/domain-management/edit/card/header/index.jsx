@@ -11,15 +11,16 @@ import React from 'react';
  * Internal dependencies
  */
 import DomainPrimaryFlag from 'my-sites/domains/domain-management/components/domain/primary-flag';
+import DomainTransferFlag from 'my-sites/domains/domain-management/components/domain/transfer-flag';
 import PrimaryDomainButton from './primary-domain-button';
 import SectionHeader from 'components/section-header';
 
-const Header = React.createClass( {
-	propTypes: {
+class Header extends React.Component {
+	static propTypes = {
 		domain: PropTypes.object.isRequired,
 		selectedSite: PropTypes.oneOfType( [ PropTypes.object, PropTypes.bool ] ).isRequired,
 		settingPrimaryDomain: PropTypes.bool.isRequired,
-	},
+	};
 
 	render() {
 		const { domain } = this.props;
@@ -31,6 +32,7 @@ const Header = React.createClass( {
 		return (
 			<SectionHeader label={ domain.name }>
 				<DomainPrimaryFlag domain={ domain } />
+				<DomainTransferFlag domain={ domain } />
 
 				{ this.props.selectedSite &&
 				! this.props.selectedSite.jetpack && (
@@ -42,7 +44,7 @@ const Header = React.createClass( {
 				) }
 			</SectionHeader>
 		);
-	},
-} );
+	}
+}
 
 export default Header;

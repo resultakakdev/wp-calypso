@@ -3,7 +3,7 @@
  *
  * @format
  */
-
+import config from 'config';
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
@@ -29,6 +29,7 @@ import {
 } from 'woocommerce/state/sites/orders/selectors';
 import { fetchOrders } from 'woocommerce/state/sites/orders/actions';
 import { fetchProducts } from 'woocommerce/state/sites/products/actions';
+import { requestSettings } from 'woocommerce/state/sites/settings/email/actions';
 import { getSelectedSiteWithFallback } from 'woocommerce/state/sites/selectors';
 import {
 	getTotalProducts,
@@ -42,6 +43,7 @@ import PreSetupView from './pre-setup-view';
 import RequiredPagesSetupView from './required-pages-setup-view';
 import RequiredPluginsInstallView from './required-plugins-install-view';
 import SetupTasksView from './setup-tasks-view';
+import MailChimp from 'woocommerce/app/settings/email/mailchimp/index.js';
 
 class Dashboard extends Component {
 	static propTypes = {
@@ -54,8 +56,10 @@ class Dashboard extends Component {
 			slug: PropTypes.string.isRequired,
 			URL: PropTypes.string.isRequired,
 		} ),
+		mailChimpConfigured: PropTypes.bool,
 		fetchOrders: PropTypes.func,
 		fetchSetupChoices: PropTypes.func,
+		requestSyncStatus: PropTypes.func,
 	};
 
 	componentDidMount = () => {
@@ -64,6 +68,7 @@ class Dashboard extends Component {
 		if ( selectedSite && selectedSite.ID ) {
 			this.props.fetchSetupChoices( selectedSite.ID );
 			this.props.fetchOrders( selectedSite.ID );
+			this.props.requestSettings( selectedSite.ID );
 
 			if ( ! productsLoaded ) {
 				this.props.fetchProducts( selectedSite.ID, { page: 1 } );
@@ -80,6 +85,7 @@ class Dashboard extends Component {
 		if ( newSiteId && oldSiteId !== newSiteId ) {
 			this.props.fetchSetupChoices( newSiteId );
 			this.props.fetchOrders( newSiteId );
+			this.props.requestSettings( newSiteId );
 
 			if ( ! productsLoaded ) {
 				this.props.fetchProducts( newSiteId, { page: 1 } );
@@ -143,24 +149,36 @@ class Dashboard extends Component {
 			return <SetupTasksView onFinished={ this.onStoreSetupFinished } site={ selectedSite } />;
 		}
 
+		let manageView = <ManageOrdersView site={ selectedSite } />;
 		if ( ! hasOrders ) {
-			return <ManageNoOrdersView site={ selectedSite } />;
+			manageView = <ManageNoOrdersView site={ selectedSite } />;
 		}
 
-		return <ManageOrdersView site={ selectedSite } />;
+		return (
+			<div>
+				{ manageView }
+				{ ! this.props.mailChimpConfigured &&
+					( config.isEnabled( 'woocommerce/extension-settings-email' ) && (
+						<MailChimp site={ selectedSite } redirectToSettings dashboardView />
+					) ) }
+			</div>
+		);
 	};
 
 	render = () => {
 		const { className, loading, selectedSite } = this.props;
 
 		if ( loading || ! selectedSite ) {
-			// TODO have a placeholder/loading view instead
+			// TODO reintroduce placeholder after new nux flow is finalized.
 			return null;
 		}
 
 		return (
 			<Main className={ classNames( 'dashboard', className ) }>
-				<ActionHeader breadcrumbs={ this.getBreadcrumb() } />
+				<ActionHeader
+					breadcrumbs={ this.getBreadcrumb() }
+					isLoading={ loading || ! selectedSite }
+				/>
 				{ this.renderDashboardContent() }
 			</Main>
 		);
@@ -195,6 +213,7 @@ function mapDispatchToProps( dispatch ) {
 			fetchOrders,
 			fetchSetupChoices,
 			fetchProducts,
+			requestSettings,
 		},
 		dispatch
 	);

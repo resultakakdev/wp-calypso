@@ -113,13 +113,14 @@ const controller = {
 	disconnectSite( context ) {
 		ReactDom.unmountComponentAtNode( document.getElementById( 'secondary' ) );
 		context.store.dispatch( setSection( null, { hasSidebar: false } ) );
-		renderPage( context, <DisconnectSite /> );
+		renderPage( context, <DisconnectSite reason={ context.params.reason } /> );
 	},
 
 	disconnectSiteConfirm( context ) {
+		const { reason, text } = context.query;
 		ReactDom.unmountComponentAtNode( document.getElementById( 'secondary' ) );
 		context.store.dispatch( setSection( null, { hasSidebar: false } ) );
-		renderPage( context, <ConfirmDisconnection /> );
+		renderPage( context, <ConfirmDisconnection reason={ reason } text={ text } /> );
 	},
 
 	startOver( context ) {

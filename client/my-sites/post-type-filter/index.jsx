@@ -5,6 +5,7 @@
  */
 
 import React from 'react';
+import createReactClass from 'create-react-class';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { localize } from 'i18n-calypso';
@@ -32,7 +33,8 @@ import AuthorSegmented from './author-segmented';
 import Button from 'components/button';
 import Gridicon from 'gridicons';
 
-const PostTypeFilter = React.createClass( {
+const PostTypeFilter = createReactClass( {
+	displayName: 'PostTypeFilter',
 	mixins: [ UrlSearch ],
 
 	propTypes: {
@@ -42,7 +44,7 @@ const PostTypeFilter = React.createClass( {
 			author: PropTypes.number, // User ID
 			status: PropTypes.string,
 			type: PropTypes.string.isRequired,
-		} ).isRequired,
+		} ),
 		jetpack: PropTypes.bool,
 		siteSlug: PropTypes.string,
 		counts: PropTypes.object,
@@ -142,6 +144,11 @@ const PostTypeFilter = React.createClass( {
 
 	render() {
 		const { authorToggleHidden, jetpack, query, siteId, statusSlug } = this.props;
+
+		if ( ! query ) {
+			return null;
+		}
+
 		const navItems = this.getNavItems();
 		const selectedItem = find( navItems, 'selected' ) || {};
 
@@ -192,7 +199,7 @@ export default connect(
 	( state, { query } ) => {
 		const siteId = getSelectedSiteId( state );
 		let authorToggleHidden = false;
-		if ( query.type === 'post' ) {
+		if ( query && query.type === 'post' ) {
 			if ( siteId ) {
 				authorToggleHidden = isSingleUserSite( state, siteId ) || isJetpackSite( state, siteId );
 			} else {

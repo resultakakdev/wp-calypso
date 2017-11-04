@@ -3,41 +3,52 @@
  * External dependencies
  */
 import React, { PureComponent } from 'react';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
+import { flow } from 'lodash';
 
 /**
  * Internal dependencies
  */
+import { recordTracksEvent } from 'state/analytics/actions';
 import {
 	NESTED_SIDEBAR_NONE,
 	NESTED_SIDEBAR_REVISIONS,
+	NestedSidebarPropType,
 } from 'post-editor/editor-sidebar/constants';
 
 class HistoryButton extends PureComponent {
-	state = {
-		showingHistory: false,
-	};
-
 	toggleShowing = () => {
-		this.setState( {
-			showingHistory: ! this.state.showingHistory,
-		} );
+		const {
+			isSidebarOpened,
+			nestedSidebar,
+			selectRevision,
+			setNestedSidebar,
+			toggleSidebar,
+		} = this.props;
+
+		// hide revisions if visible
+		if ( nestedSidebar === NESTED_SIDEBAR_REVISIONS ) {
+			setNestedSidebar( NESTED_SIDEBAR_NONE );
+			return;
+		}
+
+		// otherwise, show revisions...
+		this.trackPostRevisionsOpen();
+		selectRevision( null );
+		setNestedSidebar( NESTED_SIDEBAR_REVISIONS );
+
+		// and open the sidebar if it's not open already.
+		if ( ! isSidebarOpened ) {
+			toggleSidebar();
+		}
 	};
 
-	componentWillUpdate( nextProps, nextState ) {
-		if ( nextState.showingHistory === this.state.showingHistory ) {
-			return;
-		}
-
-		const { selectRevision, setNestedSidebar } = this.props;
-
-		selectRevision( null );
-
-		if ( nextState.showingHistory ) {
-			setNestedSidebar( NESTED_SIDEBAR_REVISIONS );
-			return;
-		}
-		setNestedSidebar( NESTED_SIDEBAR_NONE );
+	trackPostRevisionsOpen() {
+		this.props.recordTracksEvent( 'calypso_editor_post_revisions_open', {
+			source: 'ground_control_history',
+		} );
 	}
 
 	render() {
@@ -54,4 +65,13 @@ class HistoryButton extends PureComponent {
 	}
 }
 
-export default localize( HistoryButton );
+HistoryButton.PropTypes = {
+	isSidebarOpened: PropTypes.bool,
+	nestedSidebar: NestedSidebarPropType,
+	selectRevision: PropTypes.func,
+	setNestedSidebar: PropTypes.func,
+	toggleSidebar: PropTypes.func,
+	translate: PropTypes.func,
+};
+
+export default flow( localize, connect( null, { recordTracksEvent } ) )( HistoryButton );

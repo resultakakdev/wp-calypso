@@ -1,11 +1,9 @@
+/** @format */
 /**
  * External dependencies
- *
- * @format
  */
-
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import React from 'react';
 import { localize } from 'i18n-calypso';
 import classnames from 'classnames';
 
@@ -14,29 +12,26 @@ import classnames from 'classnames';
  */
 import Dialog from 'components/dialog';
 
-const AcceptDialog = React.createClass( {
-	propTypes: {
+class AcceptDialog extends Component {
+	static displayName = 'AcceptDialog';
+
+	static propTypes = {
 		translate: PropTypes.func,
 		message: PropTypes.node,
 		onClose: PropTypes.func.isRequired,
 		confirmButtonText: PropTypes.node,
 		cancelButtonText: PropTypes.node,
 		options: PropTypes.object,
-	},
+	};
 
-	getInitialState: function() {
-		return { isVisible: true };
-	},
+	state = { isVisible: true };
 
-	onClose: function( action ) {
+	onClose = action => {
+		this.setState( { isVisible: false } );
 		this.props.onClose( 'accept' === action );
+	};
 
-		if ( this.isMounted() ) {
-			this.setState( { isVisible: false } );
-		}
-	},
-
-	getActionButtons: function() {
+	getActionButtons = () => {
 		const { options } = this.props;
 		const isScary = options && options.isScary;
 		const additionalClassNames = classnames( { 'is-scary': isScary } );
@@ -56,9 +51,9 @@ const AcceptDialog = React.createClass( {
 				additionalClassNames,
 			},
 		];
-	},
+	};
 
-	render: function() {
+	render() {
 		if ( ! this.state.isVisible ) {
 			return null;
 		}
@@ -73,7 +68,7 @@ const AcceptDialog = React.createClass( {
 				{ this.props.message }
 			</Dialog>
 		);
-	},
-} );
+	}
+}
 
 export default localize( AcceptDialog );

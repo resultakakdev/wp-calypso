@@ -13,9 +13,12 @@ import { localize } from 'i18n-calypso';
  */
 import DisconnectJetpackDialog from 'blocks/disconnect-jetpack/dialog';
 import QuerySitePlans from 'components/data/query-site-plans';
+import { isEnabled } from 'config';
 import SiteToolsLink from 'my-sites/site-settings/site-tools/link';
+import { getSiteSlug } from 'state/sites/selectors';
 import { getSelectedSiteId } from 'state/ui/selectors';
 import { isSiteAutomatedTransfer } from 'state/selectors';
+import { recordTracksEvent } from 'state/analytics/actions';
 
 class DisconnectSiteLink extends Component {
 	state = {
@@ -23,11 +26,15 @@ class DisconnectSiteLink extends Component {
 	};
 
 	handleClick = event => {
-		event.preventDefault();
+		if ( ! isEnabled( 'manage/site-settings/disconnect-flow' ) ) {
+			event.preventDefault();
+		}
 
 		this.setState( {
 			dialogVisible: true,
 		} );
+
+		this.props.recordTracksEvent( 'calypso_jetpack_disconnect_start' );
 	};
 
 	handleHideDialog = () => {
@@ -37,7 +44,7 @@ class DisconnectSiteLink extends Component {
 	};
 
 	render() {
-		const { isAutomatedTransfer, siteId, translate } = this.props;
+		const { isAutomatedTransfer, siteId, siteSlug, translate } = this.props;
 
 		if ( ! siteId || isAutomatedTransfer ) {
 			return null;
@@ -48,7 +55,13 @@ class DisconnectSiteLink extends Component {
 				<QuerySitePlans siteId={ siteId } />
 
 				<SiteToolsLink
-					href="#"
+					href={
+						isEnabled( 'manage/site-settings/disconnect-flow' ) ? (
+							'/settings/disconnect-site/' + siteSlug
+						) : (
+							'#'
+						)
+					}
 					onClick={ this.handleClick }
 					title={ translate( 'Disconnect from WordPress.com' ) }
 					description={ translate(
@@ -57,23 +70,29 @@ class DisconnectSiteLink extends Component {
 					isWarning
 				/>
 
-				<DisconnectJetpackDialog
-					isVisible={ this.state.dialogVisible }
-					onClose={ this.handleHideDialog }
-					isBroken={ false }
-					siteId={ siteId }
-					disconnectHref="/stats"
-				/>
+				{ ! isEnabled( 'manage/site-settings/disconnect-flow' ) && (
+					<DisconnectJetpackDialog
+						isVisible={ this.state.dialogVisible }
+						onClose={ this.handleHideDialog }
+						isBroken={ false }
+						siteId={ siteId }
+						disconnectHref="/stats"
+					/>
+				) }
 			</div>
 		);
 	}
 }
 
-export default connect( state => {
-	const siteId = getSelectedSiteId( state );
+export default connect(
+	state => {
+		const siteId = getSelectedSiteId( state );
 
-	return {
-		isAutomatedTransfer: isSiteAutomatedTransfer( state, siteId ),
-		siteId,
-	};
-} )( localize( DisconnectSiteLink ) );
+		return {
+			isAutomatedTransfer: isSiteAutomatedTransfer( state, siteId ),
+			siteId,
+			siteSlug: getSiteSlug( state, siteId ),
+		};
+	},
+	{ recordTracksEvent }
+)( localize( DisconnectSiteLink ) );

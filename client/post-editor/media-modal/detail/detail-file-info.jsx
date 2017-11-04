@@ -7,7 +7,6 @@
 import PropTypes from 'prop-types';
 import { localize } from 'i18n-calypso';
 import React from 'react';
-import createFragment from 'react-addons-create-fragment';
 import classNames from 'classnames';
 
 /**
@@ -15,14 +14,14 @@ import classNames from 'classnames';
  */
 import MediaUtils from 'lib/media/utils';
 
-const EditorMediaModalDetailFileInfo = React.createClass( {
-	displayName: 'EditorMediaModalDetailFileInfo',
+class EditorMediaModalDetailFileInfo extends React.Component {
+	static displayName = 'EditorMediaModalDetailFileInfo';
 
-	propTypes: {
+	static propTypes = {
 		item: PropTypes.object,
-	},
+	};
 
-	getItemValue( attribute ) {
+	getItemValue = attribute => {
 		let value;
 
 		if ( ! this.props.item ) {
@@ -35,19 +34,15 @@ const EditorMediaModalDetailFileInfo = React.createClass( {
 				break;
 
 			case 'dimensions':
-				value = createFragment( {
-					width: (
-						<abbr title={ this.props.translate( 'Width in pixels' ) }>
-							{ this.props.item.width }
-						</abbr>
-					),
-					separator: ' ✕ ',
-					height: (
-						<abbr title={ this.props.translate( 'Height in pixels' ) }>
-							{ this.props.item.height }
-						</abbr>
-					),
-				} );
+				value = [
+					<abbr key="width" title={ this.props.translate( 'Width in pixels' ) }>
+						{ this.props.item.width }
+					</abbr>,
+					' ✕ ',
+					<abbr key="height" title={ this.props.translate( 'Height in pixels' ) }>
+						{ this.props.item.height }
+					</abbr>,
+				];
 				break;
 
 			case 'date':
@@ -63,9 +58,9 @@ const EditorMediaModalDetailFileInfo = React.createClass( {
 		}
 
 		return value;
-	},
+	};
 
-	renderDimensions() {
+	renderDimensions = () => {
 		if ( ! this.props.item || ( ! this.props.item.width && ! this.props.item.height ) ) {
 			return;
 		}
@@ -76,9 +71,9 @@ const EditorMediaModalDetailFileInfo = React.createClass( {
 				<td>{ this.getItemValue( 'dimensions' ) }</td>
 			</tr>
 		);
-	},
+	};
 
-	renderDuration() {
+	renderDuration = () => {
 		if ( ! this.props.item || ! this.props.item.length ) {
 			return;
 		}
@@ -89,7 +84,7 @@ const EditorMediaModalDetailFileInfo = React.createClass( {
 				<td>{ this.getItemValue( 'length' ) }</td>
 			</tr>
 		);
-	},
+	};
 
 	render() {
 		let classes = classNames( 'editor-media-modal-detail__file-info', {
@@ -118,7 +113,7 @@ const EditorMediaModalDetailFileInfo = React.createClass( {
 				</tbody>
 			</table>
 		);
-	},
-} );
+	}
+}
 
 export default localize( EditorMediaModalDetailFileInfo );

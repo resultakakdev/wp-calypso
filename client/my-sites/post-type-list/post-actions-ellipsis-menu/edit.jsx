@@ -14,8 +14,8 @@ import { get } from 'lodash';
  * Internal dependencies
  */
 import PopoverMenuItem from 'components/popover/menu-item';
-import QueryPostTypes from 'components/data/query-post-types';
-import { mc } from 'lib/analytics';
+import { bumpStat as bumpAnalyticsStat } from 'state/analytics/actions';
+import { bumpStatGenerator } from './utils';
 import { canCurrentUser } from 'state/selectors';
 import { getPost } from 'state/posts/selectors';
 import { getPostType } from 'state/post-types/selectors';
@@ -24,23 +24,17 @@ import { getEditorPath } from 'state/ui/editor/selectors';
 
 function PostActionsEllipsisMenuEdit( {
 	translate,
-	siteId,
 	canEdit,
 	status,
 	editUrl,
-	isKnownType,
+	bumpStat,
 } ) {
 	if ( 'trash' === status || ! canEdit ) {
 		return null;
 	}
 
-	function bumpStat() {
-		mc.bumpStat( 'calypso_cpt_actions', 'edit' );
-	}
-
 	return (
 		<PopoverMenuItem href={ editUrl } onClick={ bumpStat } icon="pencil">
-			{ siteId && ! isKnownType && <QueryPostTypes siteId={ siteId } /> }
 			{ translate( 'Edit', { context: 'verb' } ) }
 		</PopoverMenuItem>
 	);
@@ -49,15 +43,14 @@ function PostActionsEllipsisMenuEdit( {
 PostActionsEllipsisMenuEdit.propTypes = {
 	globalId: PropTypes.string,
 	translate: PropTypes.func.isRequired,
-	siteId: PropTypes.number,
 	canEdit: PropTypes.bool,
 	status: PropTypes.string,
 	editUrl: PropTypes.string,
-	isKnownType: PropTypes.bool,
+	bumpStat: PropTypes.func,
 };
 
-export default connect( ( state, ownProps ) => {
-	const post = getPost( state, ownProps.globalId );
+const mapStateToProps = ( state, { globalId } ) => {
+	const post = getPost( state, globalId );
 	if ( ! post ) {
 		return {};
 	}
@@ -73,10 +66,23 @@ export default connect( ( state, ownProps ) => {
 	}
 
 	return {
-		siteId: post.site_ID,
 		canEdit: canCurrentUser( state, post.site_ID, capability ),
 		status: post.status,
 		editUrl: getEditorPath( state, post.site_ID, post.ID ),
-		isKnownType: !! type,
 	};
-} )( localize( PostActionsEllipsisMenuEdit ) );
+};
+
+const mapDispatchToProps = { bumpAnalyticsStat };
+
+const mergeProps = ( stateProps, dispatchProps, ownProps ) => {
+	const bumpStat = bumpStatGenerator(
+		get( stateProps, 'type.name' ),
+		'edit',
+		dispatchProps.bumpAnalyticsStat
+	);
+	return Object.assign( {}, ownProps, stateProps, dispatchProps, { bumpStat } );
+};
+
+export default connect( mapStateToProps, mapDispatchToProps, mergeProps )(
+	localize( PostActionsEllipsisMenuEdit )
+);

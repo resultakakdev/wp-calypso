@@ -7,6 +7,7 @@ const activityItemSchema = {
 		'activityGroup',
 		'activityIcon',
 		'activityId',
+		'activityIsRewindable',
 		'activityName',
 		'activityTitle',
 		'activityTs',
@@ -20,6 +21,7 @@ const activityItemSchema = {
 		activityGroup: { type: 'string' },
 		activityIcon: { type: 'string' },
 		activityId: { type: 'string' },
+		activityIsRewindable: { type: 'boolean' },
 		activityName: { type: 'string' },
 		activityStatus: {
 			oneOf: [ { type: 'string' }, { type: 'null' } ],
@@ -32,61 +34,56 @@ const activityItemSchema = {
 		actorRole: { type: 'string' },
 		actorType: { type: 'string' },
 		actorWpcomId: { type: 'integer' },
+		rewindId: { type: [ 'null', 'string' ] },
 	},
 };
 
 export const logItemsSchema = {
 	type: 'object',
 	additionalProperties: false,
-	patternProperties: {
-		'^\\d+$': {
+	properties: {
+		data: {
 			type: 'object',
 			additionalProperties: false,
+			required: [ 'items', 'queries' ],
 			properties: {
-				data: {
+				items: {
+					patternProperties: {
+						'^.+$': activityItemSchema,
+					},
+				},
+				queries: {
 					type: 'object',
 					additionalProperties: false,
-					required: [ 'items', 'queries' ],
-					properties: {
-						items: {
-							patternProperties: {
-								'^.+$': activityItemSchema,
-							},
-						},
-						queries: {
+					patternProperties: {
+						// Query key pairs
+						'^\\[.*\\]$': {
 							type: 'object',
 							additionalProperties: false,
-							patternProperties: {
-								// Query key pairs
-								'^\\[.*\\]$': {
-									type: 'object',
-									additionalProperties: false,
-									required: [ 'itemKeys' ],
-									properties: {
-										itemKeys: {
-											type: 'array',
-											items: {
-												type: 'string',
-											},
-										},
-										found: {
-											type: 'integer',
-										},
+							required: [ 'itemKeys' ],
+							properties: {
+								itemKeys: {
+									type: 'array',
+									items: {
+										type: 'string',
 									},
+								},
+								found: {
+									type: 'integer',
 								},
 							},
 						},
 					},
 				},
-				options: {
-					type: 'object',
-					additionalProperties: false,
-					required: [ 'itemKey' ],
-					properties: {
-						itemKey: {
-							type: 'string',
-						},
-					},
+			},
+		},
+		options: {
+			type: 'object',
+			additionalProperties: false,
+			required: [ 'itemKey' ],
+			properties: {
+				itemKey: {
+					type: 'string',
 				},
 			},
 		},

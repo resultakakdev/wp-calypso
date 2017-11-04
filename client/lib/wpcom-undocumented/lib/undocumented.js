@@ -549,11 +549,29 @@ Undocumented.prototype.isDomainAvailable = function( domain, fn ) {
 };
 
 /**
+ * Get the inbound transfer status for this domain
+ *
+ * @param {string} domain - The domain name to check.
+ * @param {Function} fn The callback function
+ * @returns {Promise} A promise that resolves when the request completes
+ * @api public
+ */
+Undocumented.prototype.getInboundTransferStatus = function( domain, fn ) {
+	return this.wpcom.req.get(
+		{
+			path: `/domains/${ encodeURIComponent( domain ) }/inbound-transfer-status`,
+		},
+		fn
+	);
+};
+
+/**
  * Determine whether a domain name can be used for Site Redirect
  *
  * @param {int|string} siteId The site ID
  * @param {string} domain The domain name to check
  * @param {function} fn The callback function
+ * @returns {Promise} A promise that resolves when the request completes
  * @api public
  */
 Undocumented.prototype.canRedirect = function( siteId, domain, fn ) {
@@ -1197,6 +1215,7 @@ Undocumented.prototype.paypalExpressUrl = function( data, fn ) {
  *
  * @param {Function} fn - The callback funtion
  * @api public
+ * @returns {Promise} promise
  */
 Undocumented.prototype.exampleDomainSuggestions = function( fn ) {
 	return this.wpcom.req.get( { path: '/domains/suggestions/examples' }, function(
@@ -1267,12 +1286,6 @@ Undocumented.prototype.readFollowing = function( query, fn ) {
 	query.apiVersion = '1.3';
 	addReaderContentWidth( query );
 	return this.wpcom.req.get( '/read/following', query, fn );
-};
-
-Undocumented.prototype.readFollowingMine = function( query, fn ) {
-	debug( '/read/following/mine' );
-	query.apiVersion = '1.2';
-	return this.wpcom.req.get( '/read/following/mine', query, fn );
 };
 
 Undocumented.prototype.readA8C = function( query, fn ) {
@@ -1505,15 +1518,6 @@ Undocumented.prototype.readListItems = function( query, fn ) {
 	);
 };
 
-Undocumented.prototype.followReaderFeed = function( query, fn ) {
-	query = Object.assign( { source: config( 'readerFollowingSource' ) }, query );
-	return this.wpcom.req.post( '/read/following/mine/new', query, {}, fn );
-};
-
-Undocumented.prototype.unfollowReaderFeed = function( query, fn ) {
-	return this.wpcom.req.post( '/read/following/mine/delete', query, {}, fn );
-};
-
 Undocumented.prototype.readSite = function( query, fn ) {
 	var params = omit( query, 'site' );
 	debug( '/read/sites/:site' );
@@ -1556,68 +1560,9 @@ Undocumented.prototype.fetchSiteRecommendations = function( query, fn ) {
 	return this.wpcom.req.get( '/read/recommendations/mine', query, fn );
 };
 
-Undocumented.prototype.readRecommendationsStart = function( query, fn ) {
-	return this.wpcom.req.get( '/read/recommendations/start', query, fn );
-};
-
 Undocumented.prototype.graduateNewReader = function( fn ) {
 	const params = { apiVersion: '1.2' };
 	return this.wpcom.req.post( '/read/graduate-new-reader', params, {}, fn );
-};
-
-Undocumented.prototype.readNewPostEmailSubscription = function( query, fn ) {
-	var params = omit( query, [ 'site' ] );
-	debug( '/read/site/:site/post_email_subscriptions/new' );
-	return this.wpcom.req.post(
-		'/read/site/' + encodeURIComponent( query.site ) + '/post_email_subscriptions/new',
-		{ apiVersion: '1.2' },
-		params,
-		fn
-	);
-};
-
-Undocumented.prototype.readUpdatePostEmailSubscription = function( query, fn ) {
-	var params = omit( query, [ 'site' ] );
-	debug( '/read/site/:site/post_email_subscriptions/update' );
-	return this.wpcom.req.post(
-		'/read/site/' + encodeURIComponent( query.site ) + '/post_email_subscriptions/update',
-		{ apiVersion: '1.2' },
-		params,
-		fn
-	);
-};
-
-Undocumented.prototype.readDeletePostEmailSubscription = function( query, fn ) {
-	var params = omit( query, [ 'site' ] );
-	debug( '/read/site/:site/post_email_subscriptions/delete' );
-	return this.wpcom.req.post(
-		'/read/site/' + encodeURIComponent( query.site ) + '/post_email_subscriptions/delete',
-		{ apiVersion: '1.2' },
-		params,
-		fn
-	);
-};
-
-Undocumented.prototype.readNewCommentEmailSubscription = function( query, fn ) {
-	var params = omit( query, [ 'site' ] );
-	debug( '/read/site/:site/comment_email_subscriptions/new' );
-	return this.wpcom.req.post(
-		'/read/site/' + encodeURIComponent( query.site ) + '/comment_email_subscriptions/new',
-		{ apiVersion: '1.2' },
-		params,
-		fn
-	);
-};
-
-Undocumented.prototype.readDeleteCommentEmailSubscription = function( query, fn ) {
-	var params = omit( query, [ 'site' ] );
-	debug( '/read/site/:site/comment_email_subscriptions/delete' );
-	return this.wpcom.req.post(
-		'/read/site/' + encodeURIComponent( query.site ) + '/comment_email_subscriptions/delete',
-		{ apiVersion: '1.2' },
-		params,
-		fn
-	);
 };
 
 /**

@@ -9,7 +9,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import { find, get, delay } from 'lodash';
+import { find } from 'lodash';
 import { localize } from 'i18n-calypso';
 
 /**
@@ -26,19 +26,34 @@ import ProgressBar from 'components/progress-bar';
 import QueryJetpackPlugins from 'components/data/query-jetpack-plugins';
 import SetupHeader from './setup-header';
 import { setFinishedInstallOfRequiredPlugins } from 'woocommerce/state/sites/setup-choices/actions';
-import QuerySites from 'components/data/query-sites';
-import { getSiteOptions } from 'state/selectors';
-import { getAutomatedTransferStatus as fetchAutomatedTransferStatus } from 'state/automated-transfer/actions';
+import { hasSitePendingAutomatedTransfer } from 'state/selectors';
 import { getAutomatedTransferStatus } from 'state/automated-transfer/selectors';
 import { transferStates } from 'state/automated-transfer/constants';
-import { isSiteAutomatedTransfer as isSiteAutomatedTransferSelector } from 'state/selectors';
 
 // Time in seconds to complete various steps.
-const TIME_TO_TRANSFER_ELIGIBILITY = 5;
+const TIME_TO_TRANSFER_ACTIVE = 5;
 const TIME_TO_TRANSFER_UPLOADING = 5;
 const TIME_TO_TRANSFER_BACKFILLING = 25;
 const TIME_TO_TRANSFER_COMPLETE = 6;
 const TIME_TO_PLUGIN_INSTALLATION = 15;
+
+const transferStatusesToTimes = {};
+
+transferStatusesToTimes[ transferStates.PENDING ] = TIME_TO_TRANSFER_ACTIVE;
+
+// ACTIVE and PENDING have the same time because it's a way to show some progress even
+// if nothing happened yet (good for UX).
+transferStatusesToTimes[ transferStates.ACTIVE ] =
+	transferStatusesToTimes[ transferStates.PENDING ];
+
+transferStatusesToTimes[ transferStates.UPLOADING ] =
+	TIME_TO_TRANSFER_UPLOADING + transferStatusesToTimes[ transferStates.ACTIVE ];
+
+transferStatusesToTimes[ transferStates.BACKFILLING ] =
+	TIME_TO_TRANSFER_BACKFILLING + transferStatusesToTimes[ transferStates.UPLOADING ];
+
+transferStatusesToTimes[ transferStates.COMPLETE ] =
+	TIME_TO_TRANSFER_COMPLETE + transferStatusesToTimes[ transferStates.BACKFILLING ];
 
 class RequiredPluginsInstallView extends Component {
 	static propTypes = {
@@ -58,16 +73,20 @@ class RequiredPluginsInstallView extends Component {
 			totalSeconds: this.getTotalSeconds(),
 		};
 		this.updateTimer = false;
-		this.transferStatusFetcher = null;
 	}
 
 	componentDidMount = () => {
-		const { signupIsStore } = this.props;
+		const { hasPendingAT, automatedTransferStatus } = this.props;
 
 		this.createUpdateTimer();
 
-		if ( signupIsStore ) {
-			this.fetchAutomatedTransferStatus();
+		if ( automatedTransferStatus ) {
+			this.setState( {
+				progress: transferStatusesToTimes[ automatedTransferStatus ],
+			} );
+		}
+
+		if ( hasPendingAT ) {
 			this.startSetup();
 		}
 	};
@@ -76,56 +95,22 @@ class RequiredPluginsInstallView extends Component {
 		this.destroyUpdateTimer();
 	};
 
-	fetchAutomatedTransferStatus = () => {
-		const { signupIsStore, automatedTransferStatus } = this.props;
-
-		if ( signupIsStore ) {
-			this.props.fetchAutomatedTransferStatus( this.props.siteId );
-
-			if ( ! automatedTransferStatus ) {
-				this.transferStatusFetcher = delay( this.fetchAutomatedTransferStatus, 4000 );
-
-				return;
-			}
-
-			this.setState( {
-				progress: this.state.progress + TIME_TO_TRANSFER_ELIGIBILITY,
-			} );
-		}
-	};
-
 	componentWillReceiveProps( nextProps ) {
-		const { ACTIVE, UPLOADING, BACKFILLING, COMPLETE } = transferStates;
-		const { automatedTransferStatus: currentAutomatedTransferStatus, siteId } = this.props;
-		const { automatedTransferStatus: nextAutomatedTransferStatus } = nextProps;
+		const { automatedTransferStatus: currentATStatus, siteId, hasPendingAT } = this.props;
+		const { automatedTransferStatus: nextATStatus } = nextProps;
 
-		if ( ACTIVE === currentAutomatedTransferStatus && UPLOADING === nextAutomatedTransferStatus ) {
+		if ( hasPendingAT && nextATStatus ) {
 			this.setState( {
-				progress: this.state.progress + TIME_TO_TRANSFER_UPLOADING,
+				progress: transferStatusesToTimes[ nextATStatus ],
 			} );
-
-			return;
 		}
 
-		if (
-			UPLOADING === currentAutomatedTransferStatus &&
-			BACKFILLING === nextAutomatedTransferStatus
-		) {
-			this.setState( {
-				progress: this.state.progress + TIME_TO_TRANSFER_BACKFILLING,
-			} );
+		const { BACKFILLING, COMPLETE } = transferStates;
 
-			return;
-		}
-
-		if (
-			BACKFILLING === currentAutomatedTransferStatus &&
-			COMPLETE === nextAutomatedTransferStatus
-		) {
+		if ( BACKFILLING === currentATStatus && COMPLETE === nextATStatus ) {
 			this.setState( {
 				engineState: 'INITIALIZING',
 				workingOn: '',
-				progress: this.state.progress + TIME_TO_TRANSFER_COMPLETE,
 			} );
 
 			this.props.fetchPlugins( [ siteId ] );
@@ -147,11 +132,6 @@ class RequiredPluginsInstallView extends Component {
 		if ( this.updateTimer ) {
 			window.clearInterval( this.updateTimer );
 			this.updateTimer = false;
-		}
-
-		if ( this.transferStatusFetcher ) {
-			window.clearTimeout( this.transferStatusFetcher );
-			this.transferStatusFetcher = null;
 		}
 	};
 
@@ -388,13 +368,13 @@ class RequiredPluginsInstallView extends Component {
 	}
 
 	startSetup = () => {
-		const { signupIsStore } = this.props;
+		const { hasPendingAT } = this.props;
 
 		analytics.tracks.recordEvent( 'calypso_woocommerce_dashboard_action_click', {
 			action: 'initial-setup',
 		} );
 
-		if ( ! signupIsStore ) {
+		if ( ! hasPendingAT ) {
 			this.setState( {
 				engineState: 'INITIALIZING',
 			} );
@@ -426,51 +406,31 @@ class RequiredPluginsInstallView extends Component {
 		);
 	};
 
-	fetchSiteData = () => {
-		const { automatedTransferStatus, isSiteAutomatedTransfer, siteId } = this.props;
-		const { COMPLETE } = transferStates;
-
-		if ( ! siteId ) {
-			return;
-		}
-
-		if ( COMPLETE === automatedTransferStatus && ! isSiteAutomatedTransfer ) {
-			return <QuerySites siteId={ siteId } />;
-		}
-	};
-
 	getTotalSeconds() {
-		const { signupIsStore } = this.props;
+		const { hasPendingAT } = this.props;
 
-		if ( signupIsStore ) {
-			return (
-				TIME_TO_TRANSFER_ELIGIBILITY +
-				TIME_TO_TRANSFER_UPLOADING +
-				TIME_TO_TRANSFER_BACKFILLING +
-				TIME_TO_TRANSFER_COMPLETE +
-				TIME_TO_PLUGIN_INSTALLATION
-			);
+		if ( hasPendingAT ) {
+			return transferStatusesToTimes[ transferStates.COMPLETE ] + TIME_TO_PLUGIN_INSTALLATION;
 		}
 
 		return TIME_TO_PLUGIN_INSTALLATION;
 	}
 
 	render = () => {
-		const { site, translate, signupIsStore } = this.props;
+		const { site, translate, hasPendingAT } = this.props;
 		const { engineState, progress, totalSeconds } = this.state;
 
-		if ( ! signupIsStore && 'CONFIRMING' === engineState ) {
+		if ( ! hasPendingAT && 'CONFIRMING' === engineState ) {
 			return this.renderConfirmScreen();
 		}
 
 		return (
 			<div className="card dashboard__setup-wrapper">
 				{ site && <QueryJetpackPlugins siteIds={ [ site.ID ] } /> }
-				{ this.fetchSiteData() }
 				<SetupHeader
 					imageSource={ '/calypso/images/extensions/woocommerce/woocommerce-store-creation.svg' }
 					imageWidth={ 160 }
-					title={ translate( 'Setting up your store' ) }
+					title={ translate( 'Building your store' ) }
 					subtitle={ translate( "Give us a minute and we'll move right along." ) }
 				>
 					<ProgressBar value={ progress } total={ totalSeconds } isPulsing />
@@ -485,7 +445,6 @@ function mapStateToProps( state ) {
 	const siteId = site.ID;
 
 	const sitePlugins = site ? getPlugins( state, [ siteId ] ) : [];
-	const siteOptions = getSiteOptions( state, siteId );
 
 	return {
 		site,
@@ -493,8 +452,7 @@ function mapStateToProps( state ) {
 		sitePlugins,
 		wporg: state.plugins.wporg.items,
 		automatedTransferStatus: getAutomatedTransferStatus( state, siteId ),
-		isSiteAutomatedTransfer: isSiteAutomatedTransferSelector( state, siteId ),
-		signupIsStore: get( siteOptions, 'signup_is_store', false ),
+		hasPendingAT: hasSitePendingAutomatedTransfer( state, siteId ),
 	};
 }
 
@@ -505,7 +463,6 @@ function mapDispatchToProps( dispatch ) {
 			fetchPluginData,
 			installPlugin,
 			setFinishedInstallOfRequiredPlugins,
-			fetchAutomatedTransferStatus,
 			fetchPlugins,
 		},
 		dispatch

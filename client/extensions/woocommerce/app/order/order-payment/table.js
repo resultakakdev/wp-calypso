@@ -5,6 +5,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { clone, get, setWith } from 'lodash';
 import { localize } from 'i18n-calypso';
 
 /**
@@ -12,14 +13,17 @@ import { localize } from 'i18n-calypso';
  */
 import formatCurrency from 'lib/format-currency';
 import FormTextInput from 'components/forms/form-text-input';
+import { getCurrencyFormatDecimal } from 'woocommerce/lib/currency';
 import {
 	getOrderDiscountTax,
+	getOrderFeeTax,
 	getOrderLineItemTax,
-	getOrderRefundTotal,
 	getOrderShippingTax,
 	getOrderTotalTax,
 } from 'woocommerce/lib/order-values';
+import { getOrderRefundTotal } from 'woocommerce/lib/order-values/totals';
 import OrderTotalRow from '../order-details/row-total';
+import PriceInput from 'woocommerce/components/price-input';
 import Table from 'woocommerce/components/table';
 import TableRow from 'woocommerce/components/table/table-row';
 import TableItem from 'woocommerce/components/table/table-item';
@@ -39,12 +43,30 @@ class OrderRefundTable extends Component {
 
 	constructor( props ) {
 		super( props );
-		const shippingTax = getOrderShippingTax( props.order );
+		this.initializeState( props );
+	}
+
+	componentWillReceiveProps( nextProps ) {
+		if ( nextProps.order.id !== this.props.order.id ) {
+			this.initializeState( nextProps );
+		}
+	}
+
+	initializeState = props => {
+		const { order } = props;
+		const shippingTax = getOrderShippingTax( order );
+		const shippingTotal = parseFloat( shippingTax ) + parseFloat( order.shipping_total );
+
 		this.state = {
 			quantities: {},
-			shippingTotal: parseFloat( shippingTax ) + parseFloat( props.order.shipping_total ),
+			fees: props.order.fee_lines.map( item => {
+				const value =
+					parseFloat( item.total ) + parseFloat( getOrderFeeTax( props.order, item.id ) );
+				return getCurrencyFormatDecimal( value, order.currency );
+			} ),
+			shippingTotal: getCurrencyFormatDecimal( shippingTotal, order.currency ),
 		};
-	}
+	};
 
 	shouldShowTax = () => {
 		const { order } = this.props;
@@ -59,16 +81,39 @@ class OrderRefundTable extends Component {
 		this.props.onChange( this.state );
 	};
 
+	formatInput = name => {
+		const { order } = this.props;
+		return () => {
+			this.setState( prevState => {
+				const newValue = getCurrencyFormatDecimal( get( prevState, name ), order.currency );
+				// Update the new value in state without mutations https://github.com/lodash/lodash/issues/1696#issuecomment-328335502
+				const newState = setWith( clone( prevState ), name, newValue, clone );
+				return newState;
+			} );
+		};
+	};
+
 	onChange = event => {
 		if ( 'shipping_total' === event.target.name ) {
 			const shippingTotal = event.target.value.replace( /[^0-9,.]/g, '' );
 			this.setState( { shippingTotal }, this.triggerRecalculate );
 		} else {
 			// Name is `quantity-x`, where x is the ID in the line_items array
-			const i = event.target.name.split( '-' )[ 1 ];
-			const newQuants = this.state.quantities;
-			newQuants[ i ] = event.target.value;
-			this.setState( { quantities: newQuants }, this.triggerRecalculate );
+			const [ type, i ] = event.target.name.split( '-' );
+			const value = event.target.value;
+			if ( 'quantity' === type ) {
+				this.setState( prevState => {
+					const newQuants = prevState.quantities;
+					newQuants[ i ] = value;
+					return { quantities: newQuants };
+				}, this.triggerRecalculate );
+			} else {
+				this.setState( prevState => {
+					const newFees = prevState.fees;
+					newFees[ i ] = isNaN( parseFloat( value ) ) ? 0 : value;
+					return { fees: newFees };
+				}, this.triggerRecalculate );
+			}
 		}
 	};
 
@@ -127,6 +172,34 @@ class OrderRefundTable extends Component {
 		);
 	};
 
+	renderOrderFees = ( item, i ) => {
+		const { order, translate } = this.props;
+		const value = this.state.fees[ i ];
+		return (
+			<TableRow key={ i } className="order-payment__items order-details__items">
+				<TableItem
+					isRowHeader
+					colSpan="3"
+					className="order-payment__item-product order-details__item-product"
+				>
+					{ item.name }
+					<span className="order-payment__item-sku order-details__item-sku">
+						{ translate( 'Fee' ) }
+					</span>
+				</TableItem>
+				<TableItem colSpan="2" className="order-payment__item-total order-details__item-total">
+					<PriceInput
+						name={ `fee_line-${ i }` }
+						onChange={ this.onChange }
+						onBlur={ this.formatInput( `fees[${ i }]` ) }
+						currency={ order.currency }
+						value={ value }
+					/>
+				</TableItem>
+			</TableRow>
+		);
+	};
+
 	render() {
 		const { order, translate } = this.props;
 		if ( ! order ) {
@@ -149,9 +222,10 @@ class OrderRefundTable extends Component {
 					header={ this.renderTableHeader() }
 				>
 					{ order.line_items.map( this.renderOrderItems ) }
+					{ order.fee_lines.map( this.renderOrderFees ) }
 				</Table>
 
-				<div className={ totalsClasses }>
+				<Table className={ totalsClasses } compact>
 					<OrderTotalRow
 						currency={ order.currency }
 						label={ translate( 'Discount' ) }
@@ -166,6 +240,7 @@ class OrderRefundTable extends Component {
 						value={ this.state.shippingTotal }
 						name="shipping_total"
 						onChange={ this.onChange }
+						onBlur={ this.formatInput( 'shippingTotal' ) }
 					/>
 					<OrderTotalRow
 						className="order-payment__total-full order-details__total-full"
@@ -184,7 +259,7 @@ class OrderRefundTable extends Component {
 							showTax={ showTax }
 						/>
 					) }
-				</div>
+				</Table>
 			</div>
 		);
 	}
